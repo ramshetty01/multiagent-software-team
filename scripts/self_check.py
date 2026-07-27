@@ -21,6 +21,8 @@ from tests.test_anthropic import test_anthropic_provider_maps_messages_response
 from tests.test_prompts import test_coder_can_draft_patch_from_declared_files, test_parse_architect_json_validates_subtasks
 from tests.test_openai_provider import test_openai_provider_maps_responses_output
 from tests.test_reviewer import test_parse_review_json_requires_structured_feedback, test_reviewer_returns_structured_model_feedback
+from tests.test_gemini import test_gemini_provider_maps_generate_content_response
+from tests.test_tester import test_parse_test_failure_json_rejects_unknown_label, test_tester_classifies_failure_without_editing
 
 
 def main() -> int:
@@ -32,6 +34,7 @@ def main() -> int:
         test_save_issue_context_writes_normalized_artifact(Path(tmp))
         test_load_config_from_file_and_env(Path(tmp))
         test_coder_can_draft_patch_from_declared_files(Path(tmp))
+        test_tester_classifies_failure_without_editing(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
@@ -46,6 +49,8 @@ def main() -> int:
     test_openai_provider_maps_responses_output()
     test_parse_review_json_requires_structured_feedback()
     test_reviewer_returns_structured_model_feedback()
+    test_gemini_provider_maps_generate_content_response()
+    test_parse_test_failure_json_rejects_unknown_label()
     print("self-check passed")
     return 0
 

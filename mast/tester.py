@@ -3,14 +3,26 @@ from __future__ import annotations
 from pathlib import Path
 
 from .messages import Message
+from .models import ModelProvider, ModelRequest, complete_with_retry
+from .prompts import parse_test_failure_json, tester_prompt
 from .runner import LocalRunner
 
 
 class Tester:
-    def __init__(self, runner: LocalRunner | None = None):
+    def __init__(self, runner: LocalRunner | None = None, provider: ModelProvider | None = None, model: str = "gemini-pro"):
         self.runner = runner or LocalRunner()
+        self.provider = provider
+        self.model = model
 
-    def test(self, run_id: str, repo: str | Path, command: list[str], owner: str | None = None) -> Message:
+    def test(
+        self,
+        run_id: str,
+        repo: str | Path,
+        command: list[str],
+        owner: str | None = None,
+        diff: str = "",
+        ownership: dict[str, str] | None = None,
+    ) -> Message:
         result = self.runner.run(command, repo)
         if result.returncode == 0:
             return Message(
@@ -20,7 +32,7 @@ class Tester:
                 tags=["pr"],
                 payload={"command": command, "stdout": result.stdout, "duration_seconds": result.duration_seconds},
             )
-        return Message(
+        message = Message(
             type="test_failed",
             run_id=run_id,
             role="tester",
@@ -33,4 +45,18 @@ class Tester:
                 "returncode": result.returncode,
             },
         )
-
+        if self.provider:
+            response = complete_with_retry(
+                self.provider,
+                ModelRequest(
+                    run_id=run_id,
+                    role="tester",
+                    model=self.model,
+                    prompt=tester_prompt(result.stdout, result.stderr, diff, ownership or {}),
+                ),
+            )
+            try:
+                message.payload["classification"] = parse_test_failure_json(response.text)
+            except ValueError as exc:
+                message.payload["classification"] = {"classification": "unknown", "evidence": str(exc)}
+        return message
