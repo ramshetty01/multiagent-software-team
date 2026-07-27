@@ -79,4 +79,45 @@ def runner_for_backend(backend: str, *, tester: bool = False) -> Runner:
         return LocalRunner()
     if backend == "docker":
         return DockerRunner(readonly=tester)
+    if backend == "daytona":
+        return DaytonaRunner()
     raise ValueError(f"unsupported runner backend: {backend}")
+
+
+class DaytonaRunner:
+    def __init__(self, daytona_client=None, timeout_seconds: int = 900):
+        self.daytona_client = daytona_client
+        self.timeout_seconds = timeout_seconds
+        self.sandbox = None
+
+    def _client(self):
+        if self.daytona_client:
+            return self.daytona_client
+        try:
+            from daytona import Daytona
+        except ImportError as exc:
+            raise RuntimeError("install daytona to use the Daytona sandbox backend") from exc
+        self.daytona_client = Daytona()
+        return self.daytona_client
+
+    def ensure_sandbox(self):
+        if self.sandbox is None:
+            self.sandbox = self._client().create()
+        return self.sandbox
+
+    def close(self) -> None:
+        if self.sandbox is not None and hasattr(self._client(), "remove"):
+            self._client().remove(self.sandbox)
+            self.sandbox = None
+
+    def run(self, command: list[str], cwd: str | Path) -> CommandResult:
+        sandbox = self.ensure_sandbox()
+        sandbox_id = str(getattr(sandbox, "id", getattr(sandbox, "sandbox_id", "unknown")))
+        started = time.monotonic()
+        response = sandbox.process.exec(" ".join(command), cwd=str(cwd), timeout=self.timeout_seconds)
+        exit_code = int(getattr(response, "exit_code", 0))
+        stdout = str(getattr(response, "result", ""))
+        artifacts = getattr(response, "artifacts", None)
+        if artifacts and getattr(artifacts, "stdout", None):
+            stdout = str(artifacts.stdout)
+        return CommandResult(["daytona", sandbox_id, *command], str(cwd), exit_code, stdout, "", time.monotonic() - started)
