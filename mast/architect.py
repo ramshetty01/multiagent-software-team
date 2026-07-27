@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .messages import Message
 from .models import ModelProvider, ModelRequest, complete_with_retry
+from .prompts import architect_prompt, parse_architect_json
 from .schema import InterfaceContract, Subtask, validate_dag
 
 
@@ -20,9 +21,15 @@ def plan_from_issue(run_id: str, title: str, body: str, provider: ModelProvider 
     if provider:
         response = complete_with_retry(
             provider,
-            ModelRequest(run_id=run_id, role="architect", model=model, prompt=f"{title}\n\n{body}"),
+            ModelRequest(run_id=run_id, role="architect", model=model, prompt=architect_prompt(title, body)),
         )
         model_text = response.text
+        try:
+            subtasks = parse_architect_json(response.text)
+        except (KeyError, TypeError, ValueError):
+            subtasks = []
+        if subtasks:
+            return _messages_from_subtasks(run_id, title, body, subtasks, model_text)
 
     subtasks = [
         Subtask("task-board", "Implement task board", InterfaceContract(["mast/board.py", "mast/messages.py"], ["JsonlTaskBoard"], ["tests/test_board.py"])),
@@ -31,7 +38,10 @@ def plan_from_issue(run_id: str, title: str, body: str, provider: ModelProvider 
         Subtask("report", "Implement metrics and report", InterfaceContract(["mast/observability.py", "mast/reporting.py"], ["TraceLog"], ["tests/test_flow.py"]), ["gates"]),
     ]
     validate_dag(subtasks)
+    return _messages_from_subtasks(run_id, title, body, subtasks, model_text)
 
+
+def _messages_from_subtasks(run_id: str, title: str, body: str, subtasks: list[Subtask], model_text: str | None) -> list[Message]:
     messages = [
         Message(
             type="plan_request",
