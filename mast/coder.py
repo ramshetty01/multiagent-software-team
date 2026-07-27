@@ -25,8 +25,9 @@ class CoderWorker:
         return matches[-1] if matches else None
 
     def submit_diff(self, run_id: str, subtask: Message, changed: list[str], patch: str, tests: str) -> Message:
-        allowed = subtask.payload["contract"]["files"] + subtask.payload["contract"].get("test_impact", [])
-        bad = out_of_scope(changed, allowed)
+        contract = subtask.payload["contract"]
+        allowed = contract["files"] + contract.get("test_impact", [])
+        bad = out_of_scope(changed, allowed, generated_lockfiles=bool(contract.get("allow_generated_lockfiles")))
         if bad:
             message = Message(
                 type="replan_needed",
@@ -34,7 +35,7 @@ class CoderWorker:
                 role=self.coder_id,
                 tags=["architect", "scope"],
                 subtask_id=subtask.subtask_id,
-                payload={"changed_files": changed, "out_of_scope": bad},
+                payload={"contract": contract, "changed_files": changed, "out_of_scope": bad},
             )
         else:
             message = Message(

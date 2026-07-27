@@ -34,7 +34,9 @@ def test_coder_scope_guard(tmp_path):
         payload={"contract": {"files": ["src/a.py"], "test_impact": ["tests/test_a.py"]}},
     )
     worker = CoderWorker(board, "coder-a")
-    assert worker.submit_diff("r1", subtask, ["src/b.py"], "", "").type == "replan_needed"
+    rejected = worker.submit_diff("r1", subtask, ["src/b.py"], "", "")
+    assert rejected.type == "replan_needed"
+    assert rejected.payload["contract"]["files"] == ["src/a.py"]
     assert worker.submit_diff("r1", subtask, ["src/a.py"], "patch", "ok").type == "diff_ready"
 
 
@@ -49,4 +51,3 @@ def test_merge_reviewer_metrics_and_reporting():
     assert Reviewer().review("r1", "reviewer", "reviewer", "ok").type == "rejected"
     assert token_amplification(100, 300) == 4
     assert handoff_histogram(["merge_conflict", "nope"])["other"] == 1
-
