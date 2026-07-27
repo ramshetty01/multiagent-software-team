@@ -25,3 +25,14 @@ After GitHub auth is valid and the remote repo exists:
 scripts/create_github_issues.sh owner/repo
 ```
 
+## Run Locally
+
+```sh
+python3 -m mast.cli run --issue https://github.com/owner/repo/issues/1 --parallelism 4
+scripts/self_check.py
+```
+
+The MVP uses local process isolation and git worktree helpers first. Daytona,
+LangGraph, model clients, and LLM conflict resolution are kept behind narrow
+interfaces so they can be swapped in without changing the task-board contract.
+
