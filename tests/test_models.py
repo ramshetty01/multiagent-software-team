@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from mast.architect import plan_from_issue
+import json
+
 from mast.models import FakeModelProvider, ModelProviderError, ModelRequest, complete_with_retry
 from mast.reviewer import Reviewer
 
@@ -23,8 +25,7 @@ def test_complete_with_retry_surfaces_structured_failure():
 
 
 def test_roles_use_shared_provider_interface():
-    provider = FakeModelProvider({"architect": "plan", "reviewer": "request_changes: fix this"})
+    provider = FakeModelProvider({"architect": "plan", "reviewer": json.dumps({"decision": "request_changes", "requests": [{"path": "a.py", "message": "fix this"}]})})
 
     assert plan_from_issue("r1", "Issue", "Long enough issue body for planning.", provider)[0].payload["model_output"] == "plan"
     assert Reviewer(provider).review("r1", "coder", "reviewer", "diff").type == "review_feedback"
-

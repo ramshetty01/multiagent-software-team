@@ -25,6 +25,27 @@ def coder_prompt(subtask: dict[str, Any], files: dict[str, str]) -> str:
     )
 
 
+def reviewer_prompt(diff: str, ownership: dict[str, str] | None = None) -> str:
+    return (
+        "Review only this merged diff. Return JSON: "
+        '{"decision":"approved"} or '
+        '{"decision":"request_changes","requests":[{"path":"...","line":0,'
+        '"severity":"low|medium|high","message":"...","subtask_id":"..."}]}.\n\n'
+        f"Ownership:\n{json.dumps(ownership or {}, indent=2, sort_keys=True)}\n\n"
+        f"Diff:\n{diff}"
+    )
+
+
+def parse_review_json(text: str) -> dict[str, Any]:
+    data = json.loads(text)
+    decision = data.get("decision")
+    if decision not in {"approved", "request_changes"}:
+        raise ValueError("review decision must be approved or request_changes")
+    if decision == "request_changes" and not isinstance(data.get("requests"), list):
+        raise ValueError("review change requests are required")
+    return data
+
+
 def parse_architect_json(text: str) -> list[Subtask]:
     data = json.loads(text)
     tasks = []
@@ -54,4 +75,3 @@ def read_declared_files(repo: str | Path, files: list[str]) -> dict[str, str]:
         if path.exists() and path.is_file():
             result[name] = path.read_text(errors="replace")
     return result
-
