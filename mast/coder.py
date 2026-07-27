@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from .board import JsonlTaskBoard
+from .gitops import apply_patch, changed_files
 from .messages import Message
 from .models import ModelProvider, ModelRequest, complete_with_retry
 from .prompts import coder_prompt, read_declared_files
+from .runner import LocalRunner
 from .scope import out_of_scope
+from .worktree import WorktreeManager
 
 
 class CoderWorker:
@@ -60,3 +63,42 @@ class CoderWorker:
             ),
         )
         return response.text
+
+    def implement(
+        self,
+        run_id: str,
+        repo: str,
+        worktree_root: str,
+        subtask: Message,
+        test_command: list[str],
+        max_attempts: int = 2,
+    ) -> Message:
+        manager = WorktreeManager(repo, worktree_root)
+        info = manager.prepare(run_id, subtask.subtask_id or "unknown")
+        runner = LocalRunner()
+        last_error = ""
+        patch = ""
+        tests = ""
+        for _ in range(max(1, max_attempts)):
+            try:
+                patch = self.draft_patch(run_id, str(info.path), subtask)
+                apply_patch(info.path, patch)
+                result = runner.run(test_command, info.path)
+                tests = result.stdout + result.stderr
+                if result.returncode != 0:
+                    last_error = tests
+                    continue
+                committed = manager.commit(info, subtask.subtask_id or "unknown")
+                return self.submit_diff(run_id, subtask, changed_files(info.path, "HEAD~1"), patch, tests + f"\ncommit={committed.commit_sha}")
+            except Exception as exc:
+                last_error = str(exc)
+        message = Message(
+            type="replan_needed",
+            run_id=run_id,
+            role=self.coder_id,
+            tags=["coder", "patch_failed"],
+            subtask_id=subtask.subtask_id,
+            payload={"error": last_error, "patch": patch, "tests": tests},
+        )
+        self.board.append(message)
+        return message
