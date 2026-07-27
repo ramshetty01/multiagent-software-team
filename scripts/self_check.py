@@ -29,6 +29,7 @@ from tests.test_supervisor import test_supervisor_limits_parallel_workers_and_re
 from tests.test_worktree import test_branch_and_worktree_names_are_deterministic, test_worktree_manager_prepares_and_commits
 from tests.test_patch_loop import test_coder_patch_loop_applies_diff_and_commits
 from tests.test_scope import test_scope_accepts_exact_globs_and_directories, test_scope_allows_generated_lockfiles_only_when_configured
+from tests.test_docker_runner import test_docker_runner_mounts_tester_readonly, test_runner_factory_selects_local_and_docker
 
 
 def main() -> int:
@@ -49,6 +50,7 @@ def main() -> int:
         test_branch_and_worktree_names_are_deterministic(Path(tmp))
         test_worktree_manager_prepares_and_commits(Path(tmp))
         test_coder_patch_loop_applies_diff_and_commits(Path(tmp))
+        test_docker_runner_mounts_tester_readonly(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
@@ -67,6 +69,7 @@ def main() -> int:
     test_parse_test_failure_json_rejects_unknown_label()
     test_scope_accepts_exact_globs_and_directories()
     test_scope_allows_generated_lockfiles_only_when_configured()
+    test_runner_factory_selects_local_and_docker()
     print("self-check passed")
     return 0
 
