@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from .messages import Message
+from .models import ModelProvider, ModelRequest, complete_with_retry
 from .schema import InterfaceContract, Subtask, validate_dag
 
 
-def plan_from_issue(run_id: str, title: str, body: str) -> list[Message]:
+def plan_from_issue(run_id: str, title: str, body: str, provider: ModelProvider | None = None, model: str = "claude-opus") -> list[Message]:
     if not title.strip() or len(body.strip()) < 20:
         return [
             Message(
@@ -15,6 +16,13 @@ def plan_from_issue(run_id: str, title: str, body: str) -> list[Message]:
                 payload={"reason": "issue is too ambiguous to decompose"},
             )
         ]
+    model_text = None
+    if provider:
+        response = complete_with_retry(
+            provider,
+            ModelRequest(run_id=run_id, role="architect", model=model, prompt=f"{title}\n\n{body}"),
+        )
+        model_text = response.text
 
     subtasks = [
         Subtask("task-board", "Implement task board", InterfaceContract(["mast/board.py", "mast/messages.py"], ["JsonlTaskBoard"], ["tests/test_board.py"])),
@@ -30,7 +38,7 @@ def plan_from_issue(run_id: str, title: str, body: str) -> list[Message]:
             run_id=run_id,
             role="architect",
             tags=["architect"],
-            payload={"title": title, "issue_body": body[:2000], "subtask_ids": [task.id for task in subtasks]},
+            payload={"title": title, "issue_body": body[:2000], "model_output": model_text, "subtask_ids": [task.id for task in subtasks]},
         )
     ]
     for task in subtasks:
@@ -53,4 +61,3 @@ def plan_from_issue(run_id: str, title: str, body: str) -> list[Message]:
             )
         )
     return messages
-

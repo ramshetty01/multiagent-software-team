@@ -16,6 +16,7 @@ from tests.test_flow import (
 )
 from tests.test_github import test_parse_issue_ref_accepts_url_and_short_form, test_save_issue_context_writes_normalized_artifact
 from tests.test_config import test_load_config_from_file_and_env, test_production_config_requires_provider_keys, test_redact_secrets
+from tests.test_models import test_complete_with_retry_surfaces_structured_failure, test_fake_provider_returns_token_usage, test_roles_use_shared_provider_interface
 
 
 def main() -> int:
@@ -32,6 +33,9 @@ def main() -> int:
     test_parse_issue_ref_accepts_url_and_short_form()
     test_production_config_requires_provider_keys()
     test_redact_secrets()
+    test_fake_provider_returns_token_usage()
+    test_complete_with_retry_surfaces_structured_failure()
+    test_roles_use_shared_provider_interface()
     print("self-check passed")
     return 0
 
