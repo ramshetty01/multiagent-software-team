@@ -24,6 +24,7 @@ from tests.test_reviewer import test_parse_review_json_requires_structured_feedb
 from tests.test_gemini import test_gemini_provider_maps_generate_content_response
 from tests.test_tester import test_parse_test_failure_json_rejects_unknown_label, test_tester_classifies_failure_without_editing
 from tests.test_orchestrator import test_orchestrator_resumes_completed_nodes
+from tests.test_claims import test_claim_subtask_is_atomic_under_parallel_workers, test_expired_lease_can_be_reclaimed
 
 
 def main() -> int:
@@ -37,6 +38,8 @@ def main() -> int:
         test_coder_can_draft_patch_from_declared_files(Path(tmp))
         test_tester_classifies_failure_without_editing(Path(tmp))
         test_orchestrator_resumes_completed_nodes(Path(tmp))
+        test_claim_subtask_is_atomic_under_parallel_workers(Path(tmp))
+        test_expired_lease_can_be_reclaimed(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
