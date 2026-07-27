@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 from uuid import uuid4
 
 from .architect import plan_from_issue
 from .board import JsonlTaskBoard, append_many
+from .github import GhIssueClient, GitHubError, parse_issue_ref, save_issue_context
 from .messages import Message
 from .reporting import write_postmortem
 
@@ -20,6 +22,7 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--parallelism", type=int, default=4)
     run.add_argument("--run-id")
     run.add_argument("--board", default="runs/board.jsonl")
+    run.add_argument("--artifact-dir", default="runs")
 
     report = sub.add_parser("report")
     report.add_argument("--out", default="runs/postmortem.md")
@@ -36,6 +39,12 @@ def main(argv: list[str] | None = None) -> int:
     run_id = args.run_id or str(uuid4())
     board = JsonlTaskBoard(args.board)
     if not board.query(run_id=run_id):
+        try:
+            issue_context = GhIssueClient().fetch_issue(parse_issue_ref(args.issue))
+        except GitHubError as exc:
+            print(json.dumps(exc.to_dict(), sort_keys=True))
+            return 2
+        issue_artifact = save_issue_context(issue_context, Path(args.artifact_dir) / run_id / "issue.json")
         append_many(
             board,
             [
@@ -44,11 +53,16 @@ def main(argv: list[str] | None = None) -> int:
                     run_id=run_id,
                     role="orchestrator",
                     tags=["architect"],
-                    payload={"issue": args.issue, "repo": str(Path(args.repo)), "parallelism": args.parallelism},
+                    payload={
+                        "issue": issue_context.url,
+                        "issue_artifact": str(issue_artifact),
+                        "repo": str(Path(args.repo)),
+                        "parallelism": args.parallelism,
+                    },
                 )
             ],
         )
-        append_many(board, plan_from_issue(run_id, args.issue, f"Implement issue from {args.issue}"))
+        append_many(board, plan_from_issue(run_id, issue_context.title, issue_context.body))
     print(f"run_id={run_id}")
     print(f"board={board.path}")
     return 0
@@ -56,4 +70,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
