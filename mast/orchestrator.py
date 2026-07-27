@@ -8,6 +8,7 @@ from .architect import plan_from_issue
 from .board import JsonlTaskBoard, append_many
 from .github import GhIssueClient, parse_issue_ref, save_issue_context
 from .messages import Message
+from .supervisor import WorkerSupervisor
 
 NodeFn = Callable[["RunState"], "RunState"]
 
@@ -66,11 +67,19 @@ class Orchestrator:
         return state
 
     def coder_fanout(self, state: RunState) -> RunState:
-        subtasks = self.board.query(run_id=state.run_id, type="subtask")
-        for subtask in subtasks[: state.parallelism]:
+        subtasks = iter(self.board.query(run_id=state.run_id, type="subtask"))
+
+        def work(worker_id: str) -> None:
+            subtask = next(subtasks, None)
+            if not subtask:
+                return
             self.board.append(
-                Message(type="diff_ready", run_id=state.run_id, role=f"coder-{subtask.subtask_id}", tags=["merge"], subtask_id=subtask.subtask_id, payload={"changed_files": [], "patch": "", "tests": "not run"})
+                Message(type="diff_ready", run_id=state.run_id, role=worker_id, tags=["merge"], subtask_id=subtask.subtask_id, payload={"changed_files": [], "patch": "", "tests": "not run"})
             )
+
+        result = WorkerSupervisor(self.board, state.parallelism).run_coders(state.run_id, work)
+        if result.exit_code:
+            state.status = "failed"
         return state
 
     def merge(self, state: RunState) -> RunState:
@@ -115,4 +124,3 @@ def compile_langgraph():
     graph.add_edge("test", "pr")
     graph.add_edge("pr", END)
     return graph.compile()
-
