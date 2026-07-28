@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
+from .security import validate_command
+
 
 @dataclass(frozen=True)
 class CommandResult:
@@ -19,6 +21,7 @@ class CommandResult:
 
 class LocalRunner:
     def run(self, command: list[str], cwd: str | Path) -> CommandResult:
+        validate_command(command)
         started = time.monotonic()
         result = subprocess.run(command, cwd=cwd, text=True, capture_output=True)
         return CommandResult(
@@ -45,6 +48,7 @@ class DockerRunner:
         self.cpus = cpus
 
     def docker_command(self, command: list[str], cwd: str | Path) -> list[str]:
+        validate_command(command)
         mount_mode = "ro" if self.readonly else "rw"
         return [
             "docker",
@@ -111,6 +115,7 @@ class DaytonaRunner:
             self.sandbox = None
 
     def run(self, command: list[str], cwd: str | Path) -> CommandResult:
+        validate_command(command)
         sandbox = self.ensure_sandbox()
         sandbox_id = str(getattr(sandbox, "id", getattr(sandbox, "sandbox_id", "unknown")))
         started = time.monotonic()

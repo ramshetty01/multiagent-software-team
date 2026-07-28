@@ -35,7 +35,7 @@ def test_daytona_runner_reuses_and_closes_sandbox(tmp_path):
     client = FakeDaytona()
     runner = DaytonaRunner(client)
 
-    result = runner.run(["echo", "ok"], tmp_path)
+    result = runner.run(["python3", "-V"], tmp_path)
     runner.close()
 
     assert result.command[:2] == ["daytona", "sandbox-1"]
@@ -45,4 +45,3 @@ def test_daytona_runner_reuses_and_closes_sandbox(tmp_path):
 
 def test_runner_factory_selects_daytona():
     assert isinstance(runner_for_backend("daytona"), DaytonaRunner)
-
