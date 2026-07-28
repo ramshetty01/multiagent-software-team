@@ -42,6 +42,7 @@ from tests.test_tracing import test_langfuse_trace_log_writes_fallback_and_clien
 from tests.test_costs import test_call_cost_uses_model_pricing, test_cost_report_groups_by_role
 from tests.test_eval_harness import test_load_issue_list_requires_50, test_run_eval_writes_summary
 from tests.test_baseline import test_single_agent_baseline_records_tokens
+from tests.test_probes import test_false_approval_rate_counts_approved_probes, test_injected_bug_probe_uses_reviewer_decision
 
 
 def main() -> int:
@@ -103,6 +104,8 @@ def main() -> int:
     test_classify_retries_detects_flake()
     test_likely_owner_uses_trace_paths()
     test_call_cost_uses_model_pricing()
+    test_false_approval_rate_counts_approved_probes()
+    test_injected_bug_probe_uses_reviewer_decision()
     print("self-check passed")
     return 0
 
