@@ -46,6 +46,7 @@ from tests.test_probes import test_false_approval_rate_counts_approved_probes, t
 from tests.test_final_report import test_final_report_combines_metrics
 from tests.test_deploy_files import test_kubernetes_manifests_exist
 from tests.test_ci_files import test_ci_workflow_runs_self_check
+from tests.test_docs_index import test_readme_links_operator_docs
 
 
 def main() -> int:
@@ -112,6 +113,7 @@ def main() -> int:
     test_injected_bug_probe_uses_reviewer_decision()
     test_kubernetes_manifests_exist()
     test_ci_workflow_runs_self_check()
+    test_readme_links_operator_docs()
     print("self-check passed")
     return 0
 
