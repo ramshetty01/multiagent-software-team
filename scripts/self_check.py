@@ -35,6 +35,7 @@ from tests.test_security import test_redact_artifact_hides_config_secrets, test_
 from tests.test_merge_git import test_merge_branches_creates_staging_branch
 from tests.test_conflicts import test_resolve_conflicts_writes_only_conflicted_files
 from tests.test_feedback import test_route_review_feedback_to_owning_subtask
+from tests.test_artifacts import test_artifact_store_writes_json, test_tester_failure_links_artifacts
 
 
 def main() -> int:
@@ -61,6 +62,8 @@ def main() -> int:
         test_merge_branches_creates_staging_branch(Path(tmp))
         test_resolve_conflicts_writes_only_conflicted_files(Path(tmp))
         test_route_review_feedback_to_owning_subtask(Path(tmp))
+        test_artifact_store_writes_json(Path(tmp))
+        test_tester_failure_links_artifacts(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
