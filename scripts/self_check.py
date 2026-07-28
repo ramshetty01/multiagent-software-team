@@ -40,6 +40,7 @@ from tests.test_failures import test_classify_retries_detects_flake, test_likely
 from tests.test_pr import test_pr_creation_is_idempotent, test_pr_creation_requires_test_pass
 from tests.test_tracing import test_langfuse_trace_log_writes_fallback_and_client, test_trace_log_factory_selects_backends
 from tests.test_costs import test_call_cost_uses_model_pricing, test_cost_report_groups_by_role
+from tests.test_eval_harness import test_load_issue_list_requires_50, test_run_eval_writes_summary
 
 
 def main() -> int:
@@ -73,6 +74,8 @@ def main() -> int:
         test_langfuse_trace_log_writes_fallback_and_client(Path(tmp))
         test_trace_log_factory_selects_backends(Path(tmp))
         test_cost_report_groups_by_role(Path(tmp))
+        test_load_issue_list_requires_50(Path(tmp))
+        test_run_eval_writes_summary(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
