@@ -39,6 +39,7 @@ from tests.test_artifacts import test_artifact_store_writes_json, test_tester_fa
 from tests.test_failures import test_classify_retries_detects_flake, test_likely_owner_uses_trace_paths
 from tests.test_pr import test_pr_creation_is_idempotent, test_pr_creation_requires_test_pass
 from tests.test_tracing import test_langfuse_trace_log_writes_fallback_and_client, test_trace_log_factory_selects_backends
+from tests.test_costs import test_call_cost_uses_model_pricing, test_cost_report_groups_by_role
 
 
 def main() -> int:
@@ -71,6 +72,7 @@ def main() -> int:
         test_pr_creation_is_idempotent(Path(tmp))
         test_langfuse_trace_log_writes_fallback_and_client(Path(tmp))
         test_trace_log_factory_selects_backends(Path(tmp))
+        test_cost_report_groups_by_role(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
@@ -95,6 +97,7 @@ def main() -> int:
     test_redact_artifact_hides_config_secrets()
     test_classify_retries_detects_flake()
     test_likely_owner_uses_trace_paths()
+    test_call_cost_uses_model_pricing()
     print("self-check passed")
     return 0
 
