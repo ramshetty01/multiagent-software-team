@@ -34,6 +34,7 @@ from tests.test_daytona_runner import test_daytona_runner_reuses_and_closes_sand
 from tests.test_security import test_redact_artifact_hides_config_secrets, test_validate_command_blocks_obvious_danger, test_validate_repo_allowlist
 from tests.test_merge_git import test_merge_branches_creates_staging_branch
 from tests.test_conflicts import test_resolve_conflicts_writes_only_conflicted_files
+from tests.test_feedback import test_route_review_feedback_to_owning_subtask
 
 
 def main() -> int:
@@ -59,6 +60,7 @@ def main() -> int:
         test_validate_repo_allowlist(Path(tmp))
         test_merge_branches_creates_staging_branch(Path(tmp))
         test_resolve_conflicts_writes_only_conflicted_files(Path(tmp))
+        test_route_review_feedback_to_owning_subtask(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
