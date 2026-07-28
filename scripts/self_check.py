@@ -38,6 +38,7 @@ from tests.test_feedback import test_route_review_feedback_to_owning_subtask
 from tests.test_artifacts import test_artifact_store_writes_json, test_tester_failure_links_artifacts
 from tests.test_failures import test_classify_retries_detects_flake, test_likely_owner_uses_trace_paths
 from tests.test_pr import test_pr_creation_is_idempotent, test_pr_creation_requires_test_pass
+from tests.test_tracing import test_langfuse_trace_log_writes_fallback_and_client, test_trace_log_factory_selects_backends
 
 
 def main() -> int:
@@ -68,6 +69,8 @@ def main() -> int:
         test_tester_failure_links_artifacts(Path(tmp))
         test_pr_creation_requires_test_pass(Path(tmp))
         test_pr_creation_is_idempotent(Path(tmp))
+        test_langfuse_trace_log_writes_fallback_and_client(Path(tmp))
+        test_trace_log_factory_selects_backends(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
