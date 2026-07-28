@@ -45,6 +45,7 @@ from tests.test_baseline import test_single_agent_baseline_records_tokens
 from tests.test_probes import test_false_approval_rate_counts_approved_probes, test_injected_bug_probe_uses_reviewer_decision
 from tests.test_final_report import test_final_report_combines_metrics
 from tests.test_deploy_files import test_kubernetes_manifests_exist
+from tests.test_ci_files import test_ci_workflow_runs_self_check
 
 
 def main() -> int:
@@ -110,6 +111,7 @@ def main() -> int:
     test_false_approval_rate_counts_approved_probes()
     test_injected_bug_probe_uses_reviewer_decision()
     test_kubernetes_manifests_exist()
+    test_ci_workflow_runs_self_check()
     print("self-check passed")
     return 0
 
