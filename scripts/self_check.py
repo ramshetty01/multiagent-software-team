@@ -44,6 +44,7 @@ from tests.test_eval_harness import test_load_issue_list_requires_50, test_run_e
 from tests.test_baseline import test_single_agent_baseline_records_tokens
 from tests.test_probes import test_false_approval_rate_counts_approved_probes, test_injected_bug_probe_uses_reviewer_decision
 from tests.test_final_report import test_final_report_combines_metrics
+from tests.test_deploy_files import test_kubernetes_manifests_exist
 
 
 def main() -> int:
@@ -108,6 +109,7 @@ def main() -> int:
     test_call_cost_uses_model_pricing()
     test_false_approval_rate_counts_approved_probes()
     test_injected_bug_probe_uses_reviewer_decision()
+    test_kubernetes_manifests_exist()
     print("self-check passed")
     return 0
 
