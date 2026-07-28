@@ -41,6 +41,7 @@ from tests.test_pr import test_pr_creation_is_idempotent, test_pr_creation_requi
 from tests.test_tracing import test_langfuse_trace_log_writes_fallback_and_client, test_trace_log_factory_selects_backends
 from tests.test_costs import test_call_cost_uses_model_pricing, test_cost_report_groups_by_role
 from tests.test_eval_harness import test_load_issue_list_requires_50, test_run_eval_writes_summary
+from tests.test_baseline import test_single_agent_baseline_records_tokens
 
 
 def main() -> int:
@@ -76,6 +77,7 @@ def main() -> int:
         test_cost_report_groups_by_role(Path(tmp))
         test_load_issue_list_requires_50(Path(tmp))
         test_run_eval_writes_summary(Path(tmp))
+        test_single_agent_baseline_records_tokens(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
