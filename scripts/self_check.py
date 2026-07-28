@@ -32,6 +32,7 @@ from tests.test_scope import test_scope_accepts_exact_globs_and_directories, tes
 from tests.test_docker_runner import test_docker_runner_mounts_tester_readonly, test_runner_factory_selects_local_and_docker
 from tests.test_daytona_runner import test_daytona_runner_reuses_and_closes_sandbox, test_runner_factory_selects_daytona
 from tests.test_security import test_redact_artifact_hides_config_secrets, test_validate_command_blocks_obvious_danger, test_validate_repo_allowlist
+from tests.test_merge_git import test_merge_branches_creates_staging_branch
 
 
 def main() -> int:
@@ -55,6 +56,7 @@ def main() -> int:
         test_docker_runner_mounts_tester_readonly(Path(tmp))
         test_daytona_runner_reuses_and_closes_sandbox(Path(tmp))
         test_validate_repo_allowlist(Path(tmp))
+        test_merge_branches_creates_staging_branch(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
