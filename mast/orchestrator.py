@@ -12,6 +12,7 @@ from .feedback import route_review_feedback
 from .merge import MergeCoordinator
 from .messages import Message
 from .models import ModelProvider
+from .observability import TraceLog
 from .pr import create_pr_after_test_pass
 from .reviewer import Reviewer
 from .coder import CoderWorker
@@ -38,17 +39,26 @@ class RunState:
 class Orchestrator:
     nodes = ("intake", "architect", "coder_fanout", "merge", "review", "test", "pr")
 
-    def __init__(self, board: JsonlTaskBoard, coder_provider: ModelProvider | None = None, pr_creator: Callable[..., Message] | None = None):
+    def __init__(
+        self,
+        board: JsonlTaskBoard,
+        coder_provider: ModelProvider | None = None,
+        pr_creator: Callable[..., Message] | None = None,
+        trace_log: TraceLog | None = None,
+    ):
         self.board = board
         self.coder_provider = coder_provider
         self.pr_creator = pr_creator or create_pr_after_test_pass
+        self.trace_log = trace_log
 
     def run(self, state: RunState) -> RunState:
         state.completed_nodes = state.completed_nodes or self._completed_nodes(state.run_id)
         for node in self.nodes:
             if node in state.completed_nodes:
                 continue
+            before = len(self.board.query(run_id=state.run_id))
             state = getattr(self, node)(state)
+            self._trace(state.run_id, node, len(self.board.query(run_id=state.run_id)) - before)
             self._mark_done(state.run_id, node)
             state.completed_nodes.append(node)
             if state.status != "running":
@@ -181,6 +191,10 @@ class Orchestrator:
 
     def _mark_done(self, run_id: str, node: str) -> None:
         self.board.append(Message(type="approved", run_id=run_id, role="orchestrator", tags=["node_done"], payload={"node": node}))
+
+    def _trace(self, run_id: str, node: str, payload_size: int) -> None:
+        if self.trace_log:
+            self.trace_log.record(run_id=run_id, role=node, model="", payload_size=payload_size)
 
 
 def compile_langgraph():

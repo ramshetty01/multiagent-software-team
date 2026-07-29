@@ -6,6 +6,7 @@ from mast.board import JsonlTaskBoard
 from mast.gitops import git
 from mast.messages import Message
 from mast.models import FakeModelProvider
+from mast.observability import TraceLog
 from mast.orchestrator import Orchestrator, RunState
 
 
@@ -165,3 +166,14 @@ def test_orchestrator_pr_node_can_call_idempotent_creator(tmp_path):
     assert result.status == "succeeded"
     assert calls
     assert board.query(run_id="r7", role="pr", type="approved")[-1].payload["url"]
+
+
+def test_orchestrator_records_role_boundary_spans(tmp_path):
+    board = JsonlTaskBoard(tmp_path / "trace-board.jsonl")
+    trace = TraceLog(tmp_path / "trace.jsonl")
+    state = RunState("r8", "acme/project#1", str(tmp_path), 1, str(tmp_path / "trace-board.jsonl"), str(tmp_path))
+
+    result = FakeOrchestrator(board, trace_log=trace).run(state)
+
+    assert result.status == "succeeded"
+    assert set(trace.metrics()) >= {"intake", "architect", "coder_fanout", "merge", "review", "test", "pr"}
