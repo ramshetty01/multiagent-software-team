@@ -12,6 +12,7 @@ from .feedback import route_review_feedback
 from .merge import MergeCoordinator
 from .messages import Message
 from .models import ModelProvider
+from .pr import create_pr_after_test_pass
 from .reviewer import Reviewer
 from .coder import CoderWorker
 from .supervisor import WorkerSupervisor
@@ -29,6 +30,7 @@ class RunState:
     board_path: str
     artifact_dir: str
     test_command: list[str] | None = None
+    create_pr: bool = False
     status: str = "running"
     completed_nodes: list[str] | None = None
 
@@ -36,9 +38,10 @@ class RunState:
 class Orchestrator:
     nodes = ("intake", "architect", "coder_fanout", "merge", "review", "test", "pr")
 
-    def __init__(self, board: JsonlTaskBoard, coder_provider: ModelProvider | None = None):
+    def __init__(self, board: JsonlTaskBoard, coder_provider: ModelProvider | None = None, pr_creator: Callable[..., Message] | None = None):
         self.board = board
         self.coder_provider = coder_provider
+        self.pr_creator = pr_creator or create_pr_after_test_pass
 
     def run(self, state: RunState) -> RunState:
         state.completed_nodes = state.completed_nodes or self._completed_nodes(state.run_id)
@@ -140,10 +143,27 @@ class Orchestrator:
         return state
 
     def pr(self, state: RunState) -> RunState:
-        if not self.board.query(run_id=state.run_id, type="test_passed"):
+        if not self.board.query(run_id=state.run_id, type="approved", role="reviewer") or not self.board.query(run_id=state.run_id, type="test_passed"):
             state.status = "failed"
             return state
         review = self.board.query(run_id=state.run_id, type="review_needed")[-1]
+        if state.create_pr:
+            issue = parse_issue_ref(state.issue)
+            head = review.payload.get("staging_branch")
+            if not isinstance(head, str) or not head:
+                state.status = "failed"
+                return state
+            self.pr_creator(
+                self.board,
+                state.run_id,
+                issue.repository,
+                "main",
+                head,
+                f"Fix {state.issue}",
+                f"Automated run `{state.run_id}`.\n\nCloses {state.issue}",
+            )
+            state.status = "succeeded"
+            return state
         self.board.append(
             Message(
                 type="approved",

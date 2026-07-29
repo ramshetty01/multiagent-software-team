@@ -55,6 +55,7 @@ def main(argv: list[str] | None = None) -> int:
     run_graph.add_argument("--run-id", required=True)
     run_graph.add_argument("--board", default="runs/board.jsonl")
     run_graph.add_argument("--artifact-dir", default="runs")
+    run_graph.add_argument("--create-pr", action="store_true")
 
     args = parser.parse_args(argv)
     if args.cmd == "report":
@@ -74,7 +75,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "run-graph":
         with RunLock(Path(args.artifact_dir) / "locks", args.run_id):
             state = Orchestrator(JsonlTaskBoard(args.board)).run(
-                RunState(args.run_id, args.issue, args.repo, args.parallelism, args.board, args.artifact_dir)
+                RunState(args.run_id, args.issue, args.repo, args.parallelism, args.board, args.artifact_dir, create_pr=args.create_pr)
             )
         print(f"run_id={state.run_id}")
         print(f"status={state.status}")

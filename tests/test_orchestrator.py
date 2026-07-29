@@ -143,3 +143,25 @@ def test_orchestrator_review_feedback_requeues_owner(tmp_path):
 
     assert result.status == "failed"
     assert board.query(run_id="r6", type="subtask_requeued", subtask_id="s1")
+
+
+def test_orchestrator_pr_node_can_call_idempotent_creator(tmp_path):
+    calls = []
+
+    def fake_creator(*args, **kwargs):
+        calls.append((args, kwargs))
+        message = Message(type="approved", run_id=args[1], role="pr", tags=["terminal"], payload={"url": "https://example.test/pr/1"})
+        args[0].append(message)
+        return message
+
+    board = JsonlTaskBoard(tmp_path / "pr-board.jsonl")
+    board.append(Message(type="review_needed", run_id="r7", role="merge", payload={"staging_branch": "staging/r7"}))
+    board.append(Message(type="approved", run_id="r7", role="reviewer", payload={}))
+    board.append(Message(type="test_passed", run_id="r7", role="tester", payload={}))
+    state = RunState("r7", "acme/project#7", str(tmp_path), 1, str(tmp_path / "pr-board.jsonl"), str(tmp_path), create_pr=True)
+
+    result = Orchestrator(board, pr_creator=fake_creator).pr(state)
+
+    assert result.status == "succeeded"
+    assert calls
+    assert board.query(run_id="r7", role="pr", type="approved")[-1].payload["url"]
