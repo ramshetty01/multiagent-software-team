@@ -27,6 +27,7 @@ Required checks:
 3. Start with an empty board and artifact directory.
 4. Store issue context before the architect call.
 5. Record model names, provider versions, and sandbox backend.
+6. Record the base branch before creating coder worktrees.
 
 ## During Run
 
