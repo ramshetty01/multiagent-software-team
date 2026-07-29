@@ -31,6 +31,7 @@ from tests.test_patch_loop import test_coder_patch_loop_applies_diff_and_commits
 from tests.test_scope import test_scope_accepts_exact_globs_and_directories, test_scope_allows_generated_lockfiles_only_when_configured
 from tests.test_docker_runner import test_docker_runner_mounts_tester_readonly, test_runner_factory_selects_local_and_docker
 from tests.test_daytona_runner import test_daytona_runner_reuses_and_closes_sandbox, test_runner_factory_selects_daytona
+from tests.test_security import test_redact_artifact_hides_config_secrets, test_validate_command_blocks_obvious_danger, test_validate_repo_allowlist
 
 
 def main() -> int:
@@ -53,6 +54,7 @@ def main() -> int:
         test_coder_patch_loop_applies_diff_and_commits(Path(tmp))
         test_docker_runner_mounts_tester_readonly(Path(tmp))
         test_daytona_runner_reuses_and_closes_sandbox(Path(tmp))
+        test_validate_repo_allowlist(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
@@ -73,6 +75,8 @@ def main() -> int:
     test_scope_allows_generated_lockfiles_only_when_configured()
     test_runner_factory_selects_local_and_docker()
     test_runner_factory_selects_daytona()
+    test_validate_command_blocks_obvious_danger()
+    test_redact_artifact_hides_config_secrets()
     print("self-check passed")
     return 0
 
