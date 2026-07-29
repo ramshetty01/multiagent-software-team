@@ -49,6 +49,7 @@ from tests.test_ci_files import test_ci_workflow_runs_self_check
 from tests.test_docs_index import test_readme_links_operator_docs
 from tests.test_preflight import test_preflight_ok_requires_all_checks, test_run_preflight_returns_named_checks
 from tests.test_providers import test_provider_factory_requires_prod_keys, test_provider_factory_uses_fake_in_local
+from tests.test_status import test_run_status_summarizes_terminal_state
 
 
 def main() -> int:
@@ -86,6 +87,7 @@ def main() -> int:
         test_run_eval_writes_summary(Path(tmp))
         test_single_agent_baseline_records_tokens(Path(tmp))
         test_final_report_combines_metrics(Path(tmp))
+        test_run_status_summarizes_terminal_state(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
