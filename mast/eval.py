@@ -42,7 +42,14 @@ def load_issue_list(path: str | Path) -> list[str]:
     issues = [line.strip() for line in Path(path).read_text().splitlines() if line.strip() and not line.startswith("#")]
     if len(issues) != 50:
         raise ValueError("SWE-bench Pro evaluation requires exactly 50 issues")
+    validate_issue_ids(issues)
     return issues
+
+
+def validate_issue_ids(issues: list[str]) -> None:
+    placeholders = [issue for issue in issues if issue.startswith("issue-")]
+    if placeholders:
+        raise ValueError("replace placeholder SWE-bench issue IDs before scoring")
 
 
 def run_eval(issues: list[str], runner: Callable[[str], EvalResult], out: str | Path) -> dict[str, float]:
