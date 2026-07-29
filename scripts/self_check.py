@@ -50,6 +50,7 @@ from tests.test_docs_index import test_readme_links_operator_docs
 from tests.test_preflight import test_preflight_ok_requires_all_checks, test_run_preflight_returns_named_checks
 from tests.test_providers import test_provider_factory_requires_prod_keys, test_provider_factory_uses_fake_in_local
 from tests.test_status import test_run_status_summarizes_terminal_state
+from tests.test_schema_export import test_export_schema_lists_message_types
 
 
 def main() -> int:
@@ -122,6 +123,7 @@ def main() -> int:
     test_run_preflight_returns_named_checks()
     test_provider_factory_uses_fake_in_local()
     test_provider_factory_requires_prod_keys()
+    test_export_schema_lists_message_types()
     print("self-check passed")
     return 0
 
