@@ -42,6 +42,7 @@ from tests.test_worktree import test_branch_and_worktree_names_are_deterministic
 from tests.test_patch_loop import test_coder_patch_loop_applies_diff_and_commits
 from tests.test_scope import test_scope_accepts_exact_globs_and_directories, test_scope_allows_generated_lockfiles_only_when_configured
 from tests.test_docker_runner import test_docker_runner_mounts_tester_readonly, test_runner_factory_selects_local_and_docker
+from tests.test_runner_env import test_safe_command_env_removes_common_secret_names
 from tests.test_daytona_runner import test_daytona_runner_reuses_and_closes_sandbox, test_runner_factory_selects_daytona
 from tests.test_security import test_redact_artifact_hides_config_secrets, test_validate_command_blocks_obvious_danger, test_validate_repo_allowlist
 from tests.test_merge_git import test_merge_branches_creates_staging_branch
@@ -104,6 +105,7 @@ def main() -> int:
         test_worktree_manager_prepares_and_commits(Path(tmp))
         test_coder_patch_loop_applies_diff_and_commits(Path(tmp))
         test_docker_runner_mounts_tester_readonly(Path(tmp))
+        test_safe_command_env_removes_common_secret_names()
         test_daytona_runner_reuses_and_closes_sandbox(Path(tmp))
         test_validate_repo_allowlist(Path(tmp))
         test_merge_branches_creates_staging_branch(Path(tmp))
