@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import time
 from dataclasses import dataclass
@@ -23,7 +24,7 @@ class LocalRunner:
     def run(self, command: list[str], cwd: str | Path) -> CommandResult:
         validate_command(command)
         started = time.monotonic()
-        result = subprocess.run(command, cwd=cwd, text=True, capture_output=True)
+        result = subprocess.run(command, cwd=cwd, text=True, capture_output=True, env=safe_command_env())
         return CommandResult(
             command=command,
             cwd=str(cwd),
@@ -32,6 +33,15 @@ class LocalRunner:
             stderr=result.stderr,
             duration_seconds=time.monotonic() - started,
         )
+
+
+def safe_command_env(source: dict[str, str] | None = None) -> dict[str, str]:
+    env = dict(source or os.environ)
+    for name in list(env):
+        upper = name.upper()
+        if any(marker in upper for marker in ("API_KEY", "TOKEN", "SECRET", "PASSWORD")):
+            env.pop(name)
+    return env
 
 
 class Runner(Protocol):
