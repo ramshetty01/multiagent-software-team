@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .artifacts import ArtifactStore
+from .failures import classify_retries, likely_owner
 from .messages import Message
 from .models import ModelProvider, ModelRequest, complete_with_retry
 from .prompts import parse_test_failure_json, tester_prompt
@@ -24,8 +25,14 @@ class Tester:
         diff: str = "",
         ownership: dict[str, str] | None = None,
         artifact_store: ArtifactStore | None = None,
+        retries: int = 0,
     ) -> Message:
-        result = self.runner.run(command, repo)
+        attempts = [self.runner.run(command, repo)]
+        for _ in range(retries):
+            if attempts[-1].returncode == 0:
+                break
+            attempts.append(self.runner.run(command, repo))
+        result = attempts[-1]
         if result.returncode == 0:
             return Message(
                 type="test_passed",
@@ -45,8 +52,14 @@ class Tester:
                 "stdout": result.stdout,
                 "stderr": result.stderr,
                 "returncode": result.returncode,
+                "attempt_returncodes": [attempt.returncode for attempt in attempts],
+                "retry_classification": classify_retries([attempt.returncode for attempt in attempts]),
             },
         )
+        owner_guess, confidence = likely_owner(result.stderr, ownership or {})
+        if owner_guess and not message.subtask_id:
+            message.subtask_id = owner_guess
+        message.payload["owner_confidence"] = confidence
         if artifact_store:
             message.payload["artifacts"] = {
                 "stdout": artifact_store.write_text(run_id, "tester/stdout.log", result.stdout),

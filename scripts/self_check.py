@@ -36,6 +36,7 @@ from tests.test_merge_git import test_merge_branches_creates_staging_branch
 from tests.test_conflicts import test_resolve_conflicts_writes_only_conflicted_files
 from tests.test_feedback import test_route_review_feedback_to_owning_subtask
 from tests.test_artifacts import test_artifact_store_writes_json, test_tester_failure_links_artifacts
+from tests.test_failures import test_classify_retries_detects_flake, test_likely_owner_uses_trace_paths
 
 
 def main() -> int:
@@ -86,6 +87,8 @@ def main() -> int:
     test_runner_factory_selects_daytona()
     test_validate_command_blocks_obvious_danger()
     test_redact_artifact_hides_config_secrets()
+    test_classify_retries_detects_flake()
+    test_likely_owner_uses_trace_paths()
     print("self-check passed")
     return 0
 
