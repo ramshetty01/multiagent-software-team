@@ -8,6 +8,7 @@ from .architect import plan_from_issue
 from .board import JsonlTaskBoard, append_many
 from .github import GhIssueClient, parse_issue_ref, save_issue_context
 from .gitops import git
+from .feedback import route_review_feedback
 from .merge import MergeCoordinator
 from .messages import Message
 from .models import ModelProvider
@@ -123,7 +124,12 @@ class Orchestrator:
             return state
         diffs = self.board.query(run_id=state.run_id, type="diff_ready")
         diff_summary = "\n".join(message.payload.get("patch", "") for message in diffs)
-        self.board.append(Reviewer().review(state.run_id, "merge", "reviewer", diff_summary))
+        decision = Reviewer().review(state.run_id, "merge", "reviewer", diff_summary)
+        if decision.type == "review_feedback":
+            route_review_feedback(self.board, state.run_id, decision)
+            state.status = "failed"
+            return state
+        self.board.append(decision)
         return state
 
     def test(self, state: RunState) -> RunState:

@@ -13,3 +13,14 @@ def test_route_review_feedback_to_owning_subtask(tmp_path):
     routed = route_review_feedback(board, "r1", feedback)
 
     assert routed[0].subtask_id == "s1"
+    assert routed[1].type == "subtask_requeued"
+
+
+def test_route_review_feedback_blocks_after_loop_limit(tmp_path):
+    board = JsonlTaskBoard(tmp_path / "feedback-limit.jsonl")
+    board.append(Message(type="review_feedback", run_id="r2", role="reviewer", payload={"requests": [{"path": "a.py"}]}))
+    feedback = Message(type="review_feedback", run_id="r2", role="reviewer", payload={"requests": [{"path": "a.py"}]})
+
+    routed = route_review_feedback(board, "r2", feedback, max_attempts=1)
+
+    assert routed[0].type == "rejected"

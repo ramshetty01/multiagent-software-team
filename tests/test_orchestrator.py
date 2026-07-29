@@ -122,3 +122,24 @@ def test_orchestrator_merge_node_stages_coder_branches(tmp_path):
     assert message.payload["staging_branch"] == "staging/r5"
     assert message.payload["staging_commit"]
     assert git(repo, "branch", "--show-current") == "staging/r5"
+
+
+def test_orchestrator_review_feedback_requeues_owner(tmp_path):
+    board = JsonlTaskBoard(tmp_path / "review-board.jsonl")
+    board.append(Message(type="review_needed", run_id="r6", role="merge", payload={}))
+    board.append(
+        Message(
+            type="subtask",
+            run_id="r6",
+            role="architect",
+            subtask_id="s1",
+            payload={"title": "Fix a", "contract": {"files": ["unknown"]}},
+        )
+    )
+    board.append(Message(type="diff_ready", run_id="r6", role="coder", subtask_id="s1", payload={"changed_files": ["unknown"], "patch": "TODO: broken"}))
+    state = RunState("r6", "acme/project#1", str(tmp_path), 1, str(tmp_path / "review-board.jsonl"), str(tmp_path))
+
+    result = Orchestrator(board).review(state)
+
+    assert result.status == "failed"
+    assert board.query(run_id="r6", type="subtask_requeued", subtask_id="s1")
