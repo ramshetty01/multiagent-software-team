@@ -17,3 +17,4 @@ Core modules:
 Provider-specific adapters stay thin. Role logic should depend on `ModelProvider`,
 not SDK clients.
 
+See [diagrams](diagrams.md) and [ADRs](adr/0001-task-board.md).
