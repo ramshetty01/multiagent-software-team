@@ -15,12 +15,11 @@ class CoderWorker:
         self.model = model
 
     def claim_next(self, run_id: str) -> Message | None:
-        subtasks = self.board.query(run_id=run_id, type="subtask")
-        claimed = {msg.subtask_id for msg in self.board.query(run_id=run_id, type="diff_ready")}
-        for subtask in subtasks:
-            if subtask.subtask_id not in claimed:
-                return subtask
-        return None
+        claim = self.board.claim_subtask(run_id, self.coder_id)
+        if not claim:
+            return None
+        matches = self.board.query(run_id=run_id, type="subtask", subtask_id=claim.subtask_id)
+        return matches[-1] if matches else None
 
     def submit_diff(self, run_id: str, subtask: Message, changed: list[str], patch: str, tests: str) -> Message:
         allowed = subtask.payload["contract"]["files"] + subtask.payload["contract"].get("test_impact", [])
