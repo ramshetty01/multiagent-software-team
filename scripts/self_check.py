@@ -56,6 +56,7 @@ from tests.test_cleanup import test_cleanup_plan_lists_mast_branches_and_worktre
 from tests.test_eval_validation import test_validate_issue_ids_rejects_placeholders
 from tests.test_locks import test_run_lock_blocks_duplicate_holder
 from tests.test_errors import test_error_json_is_stable
+from tests.test_container_files import test_container_files_define_cli_entrypoint
 
 
 def main() -> int:
@@ -134,6 +135,7 @@ def main() -> int:
     test_export_schema_lists_message_types()
     test_validate_issue_ids_rejects_placeholders()
     test_error_json_is_stable()
+    test_container_files_define_cli_entrypoint()
     print("self-check passed")
     return 0
 
