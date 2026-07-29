@@ -15,7 +15,7 @@ from tests.test_flow import (
     test_schema_dag_and_status,
 )
 from tests.test_github import test_parse_issue_ref_accepts_url_and_short_form, test_save_issue_context_writes_normalized_artifact
-from tests.test_config import test_load_config_from_file_and_env, test_production_config_requires_provider_keys, test_redact_secrets
+from tests.test_config import test_load_config_from_file_and_env, test_production_config_requires_provider_keys, test_redact_secrets, test_runtime_limits_must_be_positive
 from tests.test_models import test_complete_with_retry_surfaces_structured_failure, test_fake_provider_returns_token_usage, test_roles_use_shared_provider_interface
 from tests.test_anthropic import test_anthropic_provider_maps_messages_response
 from tests.test_prompts import test_coder_can_draft_patch_from_declared_files, test_parse_architect_json_validates_subtasks
@@ -88,6 +88,7 @@ def main() -> int:
         test_coder_scope_guard(Path(tmp))
         test_save_issue_context_writes_normalized_artifact(Path(tmp))
         test_load_config_from_file_and_env(Path(tmp))
+        test_runtime_limits_must_be_positive()
         test_coder_can_draft_patch_from_declared_files(Path(tmp))
         test_tester_classifies_failure_without_editing(Path(tmp))
         test_resolve_test_command_uses_project_metadata(Path(tmp))
