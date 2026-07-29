@@ -10,6 +10,7 @@ from .github import GhIssueClient, parse_issue_ref, save_issue_context
 from .merge import MergeCoordinator
 from .messages import Message
 from .reviewer import Reviewer
+from .coder import CoderWorker
 from .supervisor import WorkerSupervisor
 from .tester import Tester
 
@@ -24,6 +25,7 @@ class RunState:
     parallelism: int
     board_path: str
     artifact_dir: str
+    test_command: list[str] | None = None
     status: str = "running"
     completed_nodes: list[str] | None = None
 
@@ -70,14 +72,18 @@ class Orchestrator:
         return state
 
     def coder_fanout(self, state: RunState) -> RunState:
-        subtasks = iter(self.board.query(run_id=state.run_id, type="subtask"))
-
         def work(worker_id: str) -> None:
-            subtask = next(subtasks, None)
+            worker = CoderWorker(self.board, worker_id)
+            subtask = worker.claim_next(state.run_id)
             if not subtask:
                 return
-            self.board.append(
-                Message(type="diff_ready", run_id=state.run_id, role=worker_id, tags=["merge"], subtask_id=subtask.subtask_id, payload={"changed_files": [], "patch": "", "tests": "not run"})
+            files = subtask.payload["contract"]["files"]
+            worker.submit_diff(
+                state.run_id,
+                subtask,
+                files,
+                f"planned implementation for {subtask.subtask_id}",
+                "deferred to tester",
             )
 
         result = WorkerSupervisor(self.board, state.parallelism).run_coders(state.run_id, work)
@@ -87,21 +93,43 @@ class Orchestrator:
 
     def merge(self, state: RunState) -> RunState:
         diffs = self.board.query(run_id=state.run_id, type="diff_ready")
+        if not diffs:
+            state.status = "failed"
+            self.board.append(Message(type="rejected", run_id=state.run_id, role="merge", tags=["merge"], payload={"reason": "no coder diffs ready"}))
+            return state
         self.board.append(MergeCoordinator().merge(state.run_id, diffs))
         return state
 
     def review(self, state: RunState) -> RunState:
+        if not self.board.query(run_id=state.run_id, type="review_needed"):
+            state.status = "failed"
+            return state
         diffs = self.board.query(run_id=state.run_id, type="diff_ready")
         diff_summary = "\n".join(message.payload.get("patch", "") for message in diffs)
         self.board.append(Reviewer().review(state.run_id, "merge", "reviewer", diff_summary))
         return state
 
     def test(self, state: RunState) -> RunState:
-        self.board.append(Tester().test(state.run_id, state.repo, ["python3", "-c", "pass"]))
+        if not self.board.query(run_id=state.run_id, type="approved", role="reviewer"):
+            state.status = "failed"
+            return state
+        self.board.append(Tester().test(state.run_id, state.repo, state.test_command or ["python3", "-c", "pass"]))
         return state
 
     def pr(self, state: RunState) -> RunState:
-        self.board.append(Message(type="approved", run_id=state.run_id, role="pr", tags=["terminal"], payload={"status": "pr_ready"}))
+        if not self.board.query(run_id=state.run_id, type="test_passed"):
+            state.status = "failed"
+            return state
+        review = self.board.query(run_id=state.run_id, type="review_needed")[-1]
+        self.board.append(
+            Message(
+                type="approved",
+                run_id=state.run_id,
+                role="pr",
+                tags=["terminal"],
+                payload={"status": "pr_ready", "merge": review.payload},
+            )
+        )
         state.status = "succeeded"
         return state
 

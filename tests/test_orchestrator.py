@@ -13,7 +13,7 @@ class FakeOrchestrator(Orchestrator):
         return state
 
     def coder_fanout(self, state):
-        state.parallelism_seen = state.parallelism
+        self.board.append(Message(type="diff_ready", run_id=state.run_id, role="coder-1", subtask_id="s1", payload={"changed_files": ["a.py"], "patch": "patch"}))
         return state
 
 
@@ -41,3 +41,13 @@ def test_orchestrator_uses_real_merge_review_test_nodes(tmp_path):
     assert board.query(run_id="r2", type="review_needed")
     assert board.query(run_id="r2", type="approved")
     assert board.query(run_id="r2", type="test_passed")
+
+
+def test_orchestrator_fails_without_required_role_artifacts(tmp_path):
+    board = JsonlTaskBoard(tmp_path / "flow.jsonl")
+    state = RunState("r3", "acme/project#1", str(tmp_path), 1, str(tmp_path / "flow.jsonl"), str(tmp_path))
+
+    result = Orchestrator(board).merge(state)
+
+    assert result.status == "failed"
+    assert board.query(run_id="r3", type="rejected", role="merge")
