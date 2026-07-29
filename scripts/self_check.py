@@ -60,6 +60,7 @@ from tests.test_container_files import test_container_files_define_cli_entrypoin
 from tests.test_governance_docs import test_governance_docs_exist
 from tests.test_architecture_docs import test_diagrams_and_adrs_exist
 from tests.test_validation import test_message_validation_runs_for_subtasks, test_subtask_payload_validation_rejects_missing_files
+from tests.test_prompt_registry import test_model_request_carries_prompt_metadata, test_prompt_registry_exposes_versions
 
 
 def main() -> int:
@@ -143,6 +144,8 @@ def main() -> int:
     test_diagrams_and_adrs_exist()
     test_subtask_payload_validation_rejects_missing_files()
     test_message_validation_runs_for_subtasks()
+    test_prompt_registry_exposes_versions()
+    test_model_request_carries_prompt_metadata()
     print("self-check passed")
     return 0
 

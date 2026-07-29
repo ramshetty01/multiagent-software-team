@@ -24,6 +24,8 @@ class ModelRequest:
     prompt: str
     files: dict[str, str] = field(default_factory=dict)
     timeout_seconds: int = 120
+    prompt_name: str | None = None
+    prompt_version: str | None = None
 
 
 @dataclass(frozen=True)
@@ -71,4 +73,3 @@ def complete_with_retry(provider: ModelProvider, request: ModelRequest, attempts
                 break
     assert last_error is not None
     raise last_error
-

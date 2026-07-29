@@ -28,7 +28,17 @@ class Reviewer:
                 payload={"requests": [{"path": "unknown", "message": "remove broken TODO before approval"}]},
             )
         if self.provider:
-            response = complete_with_retry(self.provider, ModelRequest(run_id=run_id, role="reviewer", model=self.model, prompt=reviewer_prompt(diff_summary)))
+            response = complete_with_retry(
+                self.provider,
+                ModelRequest(
+                    run_id=run_id,
+                    role="reviewer",
+                    model=self.model,
+                    prompt=reviewer_prompt(diff_summary),
+                    prompt_name="reviewer.diff",
+                    prompt_version="2026-07-30",
+                ),
+            )
             try:
                 parsed = parse_review_json(response.text)
             except ValueError as exc:
