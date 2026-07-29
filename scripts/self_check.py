@@ -54,6 +54,7 @@ from tests.test_schema_export import test_export_schema_lists_message_types
 from tests.test_artifact_cleanup import test_artifact_cleanup_supports_dry_run
 from tests.test_cleanup import test_cleanup_plan_lists_mast_branches_and_worktrees
 from tests.test_eval_validation import test_validate_issue_ids_rejects_placeholders
+from tests.test_locks import test_run_lock_blocks_duplicate_holder
 
 
 def main() -> int:
@@ -94,6 +95,7 @@ def main() -> int:
         test_run_status_summarizes_terminal_state(Path(tmp))
         test_artifact_cleanup_supports_dry_run(Path(tmp))
         test_cleanup_plan_lists_mast_branches_and_worktrees(Path(tmp))
+        test_run_lock_blocks_duplicate_holder(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
