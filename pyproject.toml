@@ -5,6 +5,7 @@ description = "MVP multi-agent issue-to-PR workflow"
 requires-python = ">=3.11"
 dependencies = [
   "langgraph>=0.6",
+  "daytona>=0.198",
 ]
 
 [project.scripts]
