@@ -25,6 +25,7 @@ from tests.test_gemini import test_gemini_provider_maps_generate_content_respons
 from tests.test_tester import test_parse_test_failure_json_rejects_unknown_label, test_tester_classifies_failure_without_editing
 from tests.test_orchestrator import test_orchestrator_resumes_completed_nodes
 from tests.test_claims import test_claim_subtask_is_atomic_under_parallel_workers, test_expired_lease_can_be_reclaimed
+from tests.test_supervisor import test_supervisor_limits_parallel_workers_and_records_lifecycle, test_supervisor_reports_worker_failure
 
 
 def main() -> int:
@@ -40,6 +41,8 @@ def main() -> int:
         test_orchestrator_resumes_completed_nodes(Path(tmp))
         test_claim_subtask_is_atomic_under_parallel_workers(Path(tmp))
         test_expired_lease_can_be_reclaimed(Path(tmp))
+        test_supervisor_limits_parallel_workers_and_records_lifecycle(Path(tmp))
+        test_supervisor_reports_worker_failure(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
