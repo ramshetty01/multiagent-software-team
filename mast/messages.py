@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from typing import Any, Literal
 from uuid import uuid4
 
+from .validation import validate_review_feedback, validate_subtask_payload
+
 MessageType = Literal[
     "plan_request",
     "subtask",
@@ -44,6 +46,10 @@ class Message:
             raise ValueError("run_id is required")
         if not data["role"]:
             raise ValueError("role is required")
+        if data["type"] == "subtask":
+            validate_subtask_payload(data["payload"])
+        if data["type"] == "review_feedback" and "requests" in data["payload"]:
+            validate_review_feedback(data["payload"])
         return data
 
     @classmethod

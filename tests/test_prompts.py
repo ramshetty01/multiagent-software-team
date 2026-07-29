@@ -25,8 +25,7 @@ def test_parse_architect_json_validates_subtasks():
 
 def test_coder_can_draft_patch_from_declared_files(tmp_path):
     (tmp_path / "a.py").write_text("print('old')\n")
-    subtask = Message(type="subtask", run_id="r1", role="architect", payload={"contract": {"files": ["a.py"]}})
+    subtask = Message(type="subtask", run_id="r1", role="architect", payload={"title": "A", "contract": {"files": ["a.py"]}})
     worker = CoderWorker(JsonlTaskBoard(tmp_path / "board.jsonl"), "coder-a", FakeModelProvider({"coder": "diff --git"}))
 
     assert worker.draft_patch("r1", str(tmp_path), subtask) == "diff --git"
-
