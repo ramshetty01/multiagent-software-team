@@ -19,6 +19,8 @@ from tests.test_config import test_load_config_from_file_and_env, test_productio
 from tests.test_models import test_complete_with_retry_surfaces_structured_failure, test_fake_provider_returns_token_usage, test_roles_use_shared_provider_interface
 from tests.test_anthropic import test_anthropic_provider_maps_messages_response
 from tests.test_prompts import test_coder_can_draft_patch_from_declared_files, test_parse_architect_json_validates_subtasks
+from tests.test_openai_provider import test_openai_provider_maps_responses_output
+from tests.test_reviewer import test_parse_review_json_requires_structured_feedback, test_reviewer_returns_structured_model_feedback
 
 
 def main() -> int:
@@ -41,6 +43,9 @@ def main() -> int:
     test_roles_use_shared_provider_interface()
     test_anthropic_provider_maps_messages_response()
     test_parse_architect_json_validates_subtasks()
+    test_openai_provider_maps_responses_output()
+    test_parse_review_json_requires_structured_feedback()
+    test_reviewer_returns_structured_model_feedback()
     print("self-check passed")
     return 0
 

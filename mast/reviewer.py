@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .messages import Message
 from .models import ModelProvider, ModelRequest, complete_with_retry
+from .prompts import parse_review_json, reviewer_prompt
 
 
 class Reviewer:
@@ -27,17 +28,24 @@ class Reviewer:
                 payload={"requests": [{"path": "unknown", "message": "remove broken TODO before approval"}]},
             )
         if self.provider:
-            response = complete_with_retry(
-                self.provider,
-                ModelRequest(run_id=run_id, role="reviewer", model=self.model, prompt=diff_summary),
-            )
-            if "request_changes" in response.text.lower():
+            response = complete_with_retry(self.provider, ModelRequest(run_id=run_id, role="reviewer", model=self.model, prompt=reviewer_prompt(diff_summary)))
+            try:
+                parsed = parse_review_json(response.text)
+            except ValueError as exc:
+                return Message(
+                    type="rejected",
+                    run_id=run_id,
+                    role=reviewer_id,
+                    tags=["reviewer"],
+                    payload={"reason": f"invalid reviewer output: {exc}"},
+                )
+            if parsed["decision"] == "request_changes":
                 return Message(
                     type="review_feedback",
                     run_id=run_id,
                     role=reviewer_id,
                     tags=["coder"],
-                    payload={"requests": [{"path": "unknown", "message": response.text}]},
+                    payload={"requests": parsed["requests"]},
                 )
         return Message(
             type="approved",
