@@ -58,6 +58,7 @@ from tests.test_locks import test_run_lock_blocks_duplicate_holder
 from tests.test_errors import test_error_json_is_stable
 from tests.test_container_files import test_container_files_define_cli_entrypoint
 from tests.test_governance_docs import test_governance_docs_exist
+from tests.test_architecture_docs import test_diagrams_and_adrs_exist
 
 
 def main() -> int:
@@ -138,6 +139,7 @@ def main() -> int:
     test_error_json_is_stable()
     test_container_files_define_cli_entrypoint()
     test_governance_docs_exist()
+    test_diagrams_and_adrs_exist()
     print("self-check passed")
     return 0
 
