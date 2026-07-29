@@ -109,12 +109,15 @@ Detailed docs:
 - [Architecture](docs/architecture.md)
 - [Run lifecycle](docs/run-lifecycle.md)
 - [Operator setup](docs/operator-setup.md)
+- [Benchmarks and evaluation](docs/benchmarks.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
 ## Evaluation
 
 The repository includes evaluation structures and a placeholder 50-issue file.
 Real SWE-bench Pro scoring requires licensed issue IDs and live model execution.
+The required protocol and artifact contract are documented in
+[docs/benchmarks.md](docs/benchmarks.md).
 
 Tracked metrics:
 

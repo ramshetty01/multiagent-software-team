@@ -62,6 +62,7 @@ from tests.test_architecture_docs import test_diagrams_and_adrs_exist
 from tests.test_validation import test_message_validation_runs_for_subtasks, test_subtask_payload_validation_rejects_missing_files
 from tests.test_prompt_registry import test_model_request_carries_prompt_metadata, test_prompt_registry_exposes_versions
 from tests.test_demo_files import test_checked_in_demo_artifacts_exist, test_demo_script_writes_board_and_status
+from tests.test_benchmark_docs import test_benchmark_docs_define_required_protocol, test_example_eval_result_matches_summary_shape
 
 
 def main() -> int:
@@ -149,6 +150,8 @@ def main() -> int:
     test_prompt_registry_exposes_versions()
     test_model_request_carries_prompt_metadata()
     test_checked_in_demo_artifacts_exist()
+    test_benchmark_docs_define_required_protocol()
+    test_example_eval_result_matches_summary_shape()
     print("self-check passed")
     return 0
 
