@@ -47,6 +47,7 @@ from tests.test_final_report import test_final_report_combines_metrics
 from tests.test_deploy_files import test_kubernetes_manifests_exist
 from tests.test_ci_files import test_ci_workflow_runs_self_check
 from tests.test_docs_index import test_readme_links_operator_docs
+from tests.test_preflight import test_preflight_ok_requires_all_checks, test_run_preflight_returns_named_checks
 
 
 def main() -> int:
@@ -114,6 +115,8 @@ def main() -> int:
     test_kubernetes_manifests_exist()
     test_ci_workflow_runs_self_check()
     test_readme_links_operator_docs()
+    test_preflight_ok_requires_all_checks()
+    test_run_preflight_returns_named_checks()
     print("self-check passed")
     return 0
 
