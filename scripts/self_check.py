@@ -54,7 +54,7 @@ from tests.test_failures import test_classify_retries_detects_flake, test_likely
 from tests.test_pr import test_pr_creation_is_idempotent, test_pr_creation_requires_test_pass
 from tests.test_tracing import test_langfuse_trace_log_writes_fallback_and_client, test_trace_log_factory_selects_backends
 from tests.test_costs import test_call_cost_uses_model_pricing, test_cost_report_groups_by_role
-from tests.test_eval_harness import test_load_issue_list_requires_50, test_run_eval_writes_summary
+from tests.test_eval_harness import test_load_issue_list_requires_50, test_run_eval_writes_summary, test_run_paired_eval_writes_multi_agent_and_baseline
 from tests.test_baseline import test_single_agent_baseline_records_tokens
 from tests.test_probes import test_false_approval_rate_counts_approved_probes, test_injected_bug_probe_uses_reviewer_decision
 from tests.test_final_report import test_final_report_combines_metrics
@@ -123,6 +123,7 @@ def main() -> int:
         test_cost_report_groups_by_role(Path(tmp))
         test_load_issue_list_requires_50(Path(tmp))
         test_run_eval_writes_summary(Path(tmp))
+        test_run_paired_eval_writes_multi_agent_and_baseline(Path(tmp))
         test_single_agent_baseline_records_tokens(Path(tmp))
         test_final_report_combines_metrics(Path(tmp))
         test_run_status_summarizes_terminal_state(Path(tmp))
