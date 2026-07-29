@@ -13,6 +13,7 @@ from .messages import Message
 from .orchestrator import Orchestrator, RunState
 from .preflight import preflight_ok, run_preflight
 from .reporting import write_postmortem
+from .status import run_status
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -38,6 +39,10 @@ def main(argv: list[str] | None = None) -> int:
     preflight.add_argument("--config")
     preflight.add_argument("--repo", default=".")
 
+    status_cmd = sub.add_parser("status")
+    status_cmd.add_argument("--board", required=True)
+    status_cmd.add_argument("--run-id", required=True)
+
     run_graph = sub.add_parser("run-graph")
     run_graph.add_argument("--issue", required=True)
     run_graph.add_argument("--repo", default=".")
@@ -55,6 +60,9 @@ def main(argv: list[str] | None = None) -> int:
         checks = run_preflight(args.config, args.repo)
         print(json.dumps([check.to_dict() for check in checks], indent=2, sort_keys=True))
         return 0 if preflight_ok(checks) else 2
+    if args.cmd == "status":
+        print(json.dumps(run_status(JsonlTaskBoard(args.board), args.run_id), indent=2, sort_keys=True))
+        return 0
     if args.cmd == "run-graph":
         state = Orchestrator(JsonlTaskBoard(args.board)).run(
             RunState(args.run_id, args.issue, args.repo, args.parallelism, args.board, args.artifact_dir)
