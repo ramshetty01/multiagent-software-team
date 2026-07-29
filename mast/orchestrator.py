@@ -9,6 +9,7 @@ from .board import JsonlTaskBoard, append_many
 from .github import GhIssueClient, parse_issue_ref, save_issue_context
 from .merge import MergeCoordinator
 from .messages import Message
+from .models import ModelProvider
 from .reviewer import Reviewer
 from .coder import CoderWorker
 from .supervisor import WorkerSupervisor
@@ -33,8 +34,9 @@ class RunState:
 class Orchestrator:
     nodes = ("intake", "architect", "coder_fanout", "merge", "review", "test", "pr")
 
-    def __init__(self, board: JsonlTaskBoard):
+    def __init__(self, board: JsonlTaskBoard, coder_provider: ModelProvider | None = None):
         self.board = board
+        self.coder_provider = coder_provider
 
     def run(self, state: RunState) -> RunState:
         state.completed_nodes = state.completed_nodes or self._completed_nodes(state.run_id)
@@ -73,9 +75,18 @@ class Orchestrator:
 
     def coder_fanout(self, state: RunState) -> RunState:
         def work(worker_id: str) -> None:
-            worker = CoderWorker(self.board, worker_id)
+            worker = CoderWorker(self.board, worker_id, self.coder_provider)
             subtask = worker.claim_next(state.run_id)
             if not subtask:
+                return
+            if self.coder_provider:
+                worker.implement(
+                    state.run_id,
+                    state.repo,
+                    str(Path(state.artifact_dir) / "worktrees"),
+                    subtask,
+                    state.test_command or ["git", "diff", "--check"],
+                )
                 return
             files = subtask.payload["contract"]["files"]
             worker.submit_diff(
