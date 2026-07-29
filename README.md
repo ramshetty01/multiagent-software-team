@@ -110,6 +110,7 @@ Detailed docs:
 - [Run lifecycle](docs/run-lifecycle.md)
 - [Operator setup](docs/operator-setup.md)
 - [Benchmarks and evaluation](docs/benchmarks.md)
+- [Operations runbook](docs/operations.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
 ## Evaluation
