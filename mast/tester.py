@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from .artifacts import ArtifactStore
 from .messages import Message
 from .models import ModelProvider, ModelRequest, complete_with_retry
 from .prompts import parse_test_failure_json, tester_prompt
@@ -22,6 +23,7 @@ class Tester:
         owner: str | None = None,
         diff: str = "",
         ownership: dict[str, str] | None = None,
+        artifact_store: ArtifactStore | None = None,
     ) -> Message:
         result = self.runner.run(command, repo)
         if result.returncode == 0:
@@ -45,6 +47,11 @@ class Tester:
                 "returncode": result.returncode,
             },
         )
+        if artifact_store:
+            message.payload["artifacts"] = {
+                "stdout": artifact_store.write_text(run_id, "tester/stdout.log", result.stdout),
+                "stderr": artifact_store.write_text(run_id, "tester/stderr.log", result.stderr),
+            }
         if self.provider:
             response = complete_with_retry(
                 self.provider,
