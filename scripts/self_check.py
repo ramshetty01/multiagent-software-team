@@ -26,6 +26,7 @@ from tests.test_tester import test_parse_test_failure_json_rejects_unknown_label
 from tests.test_orchestrator import (
     test_orchestrator_coder_node_uses_worktree_patch_loop,
     test_orchestrator_fails_without_required_role_artifacts,
+    test_orchestrator_merge_node_stages_coder_branches,
     test_orchestrator_resumes_completed_nodes,
 )
 from tests.test_claims import test_claim_subtask_is_atomic_under_parallel_workers, test_expired_lease_can_be_reclaimed
@@ -83,6 +84,7 @@ def main() -> int:
         test_orchestrator_resumes_completed_nodes(Path(tmp))
         test_orchestrator_fails_without_required_role_artifacts(Path(tmp))
         test_orchestrator_coder_node_uses_worktree_patch_loop(Path(tmp))
+        test_orchestrator_merge_node_stages_coder_branches(Path(tmp))
         test_claim_subtask_is_atomic_under_parallel_workers(Path(tmp))
         test_expired_lease_can_be_reclaimed(Path(tmp))
         test_supervisor_limits_parallel_workers_and_records_lifecycle(Path(tmp))

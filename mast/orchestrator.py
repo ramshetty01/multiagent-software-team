@@ -7,6 +7,7 @@ from typing import Callable
 from .architect import plan_from_issue
 from .board import JsonlTaskBoard, append_many
 from .github import GhIssueClient, parse_issue_ref, save_issue_context
+from .gitops import git
 from .merge import MergeCoordinator
 from .messages import Message
 from .models import ModelProvider
@@ -107,6 +108,11 @@ class Orchestrator:
         if not diffs:
             state.status = "failed"
             self.board.append(Message(type="rejected", run_id=state.run_id, role="merge", tags=["merge"], payload={"reason": "no coder diffs ready"}))
+            return state
+        branches = [message.payload.get("branch") for message in diffs]
+        if branches and all(isinstance(branch, str) and branch for branch in branches):
+            base_ref = git(state.repo, "branch", "--show-current") or "HEAD"
+            self.board.append(MergeCoordinator().merge_branches(state.run_id, state.repo, base_ref, branches))
             return state
         self.board.append(MergeCoordinator().merge(state.run_id, diffs))
         return state

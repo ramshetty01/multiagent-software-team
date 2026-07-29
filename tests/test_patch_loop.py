@@ -32,3 +32,5 @@ def test_coder_patch_loop_applies_diff_and_commits(tmp_path):
 
     assert message.type == "diff_ready"
     assert "commit=" in message.payload["tests"]
+    assert message.payload["branch"] == "mast/r2/patch"
+    assert message.payload["commit_sha"]

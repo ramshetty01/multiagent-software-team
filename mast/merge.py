@@ -51,7 +51,7 @@ class MergeCoordinator:
             run_id=run_id,
             role="merge",
             tags=["reviewer"],
-            payload={"staging_branch": staging, "branches": sorted(branches), "conflicts": []},
+            payload={"staging_branch": staging, "staging_commit": git(repo, "rev-parse", "HEAD"), "branches": sorted(branches), "conflicts": []},
         )
 
 

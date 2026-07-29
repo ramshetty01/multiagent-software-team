@@ -91,3 +91,34 @@ def test_orchestrator_coder_node_uses_worktree_patch_loop(tmp_path):
     diff = board.query(run_id="r4", type="diff_ready")[-1]
     assert diff.payload["changed_files"] == ["a.txt"]
     assert "commit=" in diff.payload["tests"]
+
+
+def test_orchestrator_merge_node_stages_coder_branches(tmp_path):
+    repo = tmp_path / "merge-orchestrator-repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-b", "main"], cwd=repo, check=True, stdout=subprocess.DEVNULL)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=repo, check=True)
+    (repo / "a.txt").write_text("a\n", encoding="utf-8")
+    (repo / "b.txt").write_text("b\n", encoding="utf-8")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-m", "init")
+    git(repo, "switch", "-c", "coder-a")
+    (repo / "a.txt").write_text("aa\n", encoding="utf-8")
+    git(repo, "commit", "-am", "a")
+    git(repo, "switch", "main")
+    git(repo, "switch", "-c", "coder-b")
+    (repo / "b.txt").write_text("bb\n", encoding="utf-8")
+    git(repo, "commit", "-am", "b")
+    git(repo, "switch", "main")
+    board = JsonlTaskBoard(tmp_path / "merge-board.jsonl")
+    board.append(Message(type="diff_ready", run_id="r5", role="coder-a", subtask_id="a", payload={"changed_files": ["a.txt"], "patch": "a", "branch": "coder-a"}))
+    board.append(Message(type="diff_ready", run_id="r5", role="coder-b", subtask_id="b", payload={"changed_files": ["b.txt"], "patch": "b", "branch": "coder-b"}))
+    state = RunState("r5", "acme/project#1", str(repo), 2, str(tmp_path / "merge-board.jsonl"), str(tmp_path))
+
+    Orchestrator(board).merge(state)
+
+    message = board.query(run_id="r5", type="review_needed")[-1]
+    assert message.payload["staging_branch"] == "staging/r5"
+    assert message.payload["staging_commit"]
+    assert git(repo, "branch", "--show-current") == "staging/r5"
