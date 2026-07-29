@@ -33,6 +33,7 @@ from tests.test_orchestrator import (
     test_orchestrator_fails_without_required_role_artifacts,
     test_orchestrator_merge_node_stages_coder_branches,
     test_orchestrator_pr_node_can_call_idempotent_creator,
+    test_orchestrator_records_role_boundary_spans,
     test_orchestrator_review_feedback_requeues_owner,
     test_orchestrator_resumes_completed_nodes,
 )
@@ -97,6 +98,7 @@ def main() -> int:
         test_orchestrator_merge_node_stages_coder_branches(Path(tmp))
         test_orchestrator_review_feedback_requeues_owner(Path(tmp))
         test_orchestrator_pr_node_can_call_idempotent_creator(Path(tmp))
+        test_orchestrator_records_role_boundary_spans(Path(tmp))
         test_claim_subtask_is_atomic_under_parallel_workers(Path(tmp))
         test_expired_lease_can_be_reclaimed(Path(tmp))
         test_supervisor_limits_parallel_workers_and_records_lifecycle(Path(tmp))
