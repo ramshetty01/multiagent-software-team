@@ -17,7 +17,7 @@ def route_review_feedback(board: JsonlTaskBoard, run_id: str, feedback: Message,
     ownership = ownership_from_subtasks(board.query(run_id=run_id, type="subtask"))
     routed: list[Message] = []
     attempts = len(board.query(run_id=run_id, type="review_feedback"))
-    if attempts > max_attempts:
+    if attempts >= max_attempts:
         blocked = Message(type="rejected", run_id=run_id, role="reviewer", tags=["blocked"], payload={"reason": "review feedback loop limit exceeded"})
         board.append(blocked)
         return [blocked]
@@ -33,5 +33,14 @@ def route_review_feedback(board: JsonlTaskBoard, run_id: str, feedback: Message,
         )
         board.append(message)
         routed.append(message)
+        requeued = Message(
+            type="subtask_requeued",
+            run_id=run_id,
+            role="reviewer",
+            tags=["coder", subtask_id or "unowned"],
+            subtask_id=subtask_id,
+            payload={"reason": "review_feedback", "request": request},
+        )
+        board.append(requeued)
+        routed.append(requeued)
     return routed
-

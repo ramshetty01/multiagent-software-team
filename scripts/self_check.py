@@ -27,6 +27,7 @@ from tests.test_orchestrator import (
     test_orchestrator_coder_node_uses_worktree_patch_loop,
     test_orchestrator_fails_without_required_role_artifacts,
     test_orchestrator_merge_node_stages_coder_branches,
+    test_orchestrator_review_feedback_requeues_owner,
     test_orchestrator_resumes_completed_nodes,
 )
 from tests.test_claims import test_claim_subtask_is_atomic_under_parallel_workers, test_expired_lease_can_be_reclaimed
@@ -39,7 +40,7 @@ from tests.test_daytona_runner import test_daytona_runner_reuses_and_closes_sand
 from tests.test_security import test_redact_artifact_hides_config_secrets, test_validate_command_blocks_obvious_danger, test_validate_repo_allowlist
 from tests.test_merge_git import test_merge_branches_creates_staging_branch
 from tests.test_conflicts import test_resolve_conflicts_writes_only_conflicted_files
-from tests.test_feedback import test_route_review_feedback_to_owning_subtask
+from tests.test_feedback import test_route_review_feedback_blocks_after_loop_limit, test_route_review_feedback_to_owning_subtask
 from tests.test_artifacts import test_artifact_store_writes_json, test_tester_failure_links_artifacts
 from tests.test_failures import test_classify_retries_detects_flake, test_likely_owner_uses_trace_paths
 from tests.test_pr import test_pr_creation_is_idempotent, test_pr_creation_requires_test_pass
@@ -85,6 +86,7 @@ def main() -> int:
         test_orchestrator_fails_without_required_role_artifacts(Path(tmp))
         test_orchestrator_coder_node_uses_worktree_patch_loop(Path(tmp))
         test_orchestrator_merge_node_stages_coder_branches(Path(tmp))
+        test_orchestrator_review_feedback_requeues_owner(Path(tmp))
         test_claim_subtask_is_atomic_under_parallel_workers(Path(tmp))
         test_expired_lease_can_be_reclaimed(Path(tmp))
         test_supervisor_limits_parallel_workers_and_records_lifecycle(Path(tmp))
@@ -98,6 +100,7 @@ def main() -> int:
         test_merge_branches_creates_staging_branch(Path(tmp))
         test_resolve_conflicts_writes_only_conflicted_files(Path(tmp))
         test_route_review_feedback_to_owning_subtask(Path(tmp))
+        test_route_review_feedback_blocks_after_loop_limit(Path(tmp))
         test_artifact_store_writes_json(Path(tmp))
         test_tester_failure_links_artifacts(Path(tmp))
         test_pr_creation_requires_test_pass(Path(tmp))
