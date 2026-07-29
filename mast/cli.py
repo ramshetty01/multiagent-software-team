@@ -10,6 +10,7 @@ from .board import JsonlTaskBoard, append_many
 from .config import load_config
 from .github import GhIssueClient, GitHubError, parse_issue_ref, save_issue_context
 from .messages import Message
+from .orchestrator import Orchestrator, RunState
 from .reporting import write_postmortem
 
 
@@ -32,10 +33,25 @@ def main(argv: list[str] | None = None) -> int:
     report.add_argument("--speedup", type=float, default=1.0)
     report.add_argument("--token-cost", type=float, default=0.0)
 
+    run_graph = sub.add_parser("run-graph")
+    run_graph.add_argument("--issue", required=True)
+    run_graph.add_argument("--repo", default=".")
+    run_graph.add_argument("--parallelism", type=int, default=4)
+    run_graph.add_argument("--run-id", required=True)
+    run_graph.add_argument("--board", default="runs/board.jsonl")
+    run_graph.add_argument("--artifact-dir", default="runs")
+
     args = parser.parse_args(argv)
     if args.cmd == "report":
         write_postmortem(args.out, args.failure, args.speedup, args.token_cost)
         print(args.out)
+        return 0
+    if args.cmd == "run-graph":
+        state = Orchestrator(JsonlTaskBoard(args.board)).run(
+            RunState(args.run_id, args.issue, args.repo, args.parallelism, args.board, args.artifact_dir)
+        )
+        print(f"run_id={state.run_id}")
+        print(f"status={state.status}")
         return 0
 
     run_id = args.run_id or str(uuid4())
