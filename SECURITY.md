@@ -14,9 +14,8 @@ public issue for exploitable sandbox, secret, or command-execution problems.
 - repository allowlist
 - Docker and Daytona runner boundaries
 - secret redaction in logs and artifacts
-- prompt-injection guidance in the threat model
+- prompt-injection guidance in [docs/threat-model.md](docs/threat-model.md)
 
 ## Non-Goals
 
 The default local runner is not a security boundary.
-

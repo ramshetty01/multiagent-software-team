@@ -63,6 +63,7 @@ from tests.test_validation import test_message_validation_runs_for_subtasks, tes
 from tests.test_prompt_registry import test_model_request_carries_prompt_metadata, test_prompt_registry_exposes_versions
 from tests.test_demo_files import test_checked_in_demo_artifacts_exist, test_demo_script_writes_board_and_status
 from tests.test_benchmark_docs import test_benchmark_docs_define_required_protocol, test_example_eval_result_matches_summary_shape
+from tests.test_operations_docs import test_operations_and_threat_model_docs_exist
 
 
 def main() -> int:
@@ -152,6 +153,7 @@ def main() -> int:
     test_checked_in_demo_artifacts_exist()
     test_benchmark_docs_define_required_protocol()
     test_example_eval_result_matches_summary_shape()
+    test_operations_and_threat_model_docs_exist()
     print("self-check passed")
     return 0
 

@@ -23,3 +23,5 @@ Required services:
 - Langfuse credentials when tracing backend is `langfuse`.
 - Docker or Daytona sandbox backend.
 
+Operational runbooks are tracked in [operations.md](operations.md). Security
+boundaries are tracked in [threat-model.md](threat-model.md).
