@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
 
 FAILURE_TYPES = {"plan_too_vague", "merge_conflict", "reviewer_false_approve", "tester_flake", "other"}
@@ -27,3 +28,24 @@ def write_postmortem(path: str | Path, failures: list[str], speedup: float, toke
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text("\n".join(lines) + "\n")
 
+
+def final_report(eval_summary: dict[str, Any], cost_summary: dict[str, Any], failures: list[str]) -> dict[str, Any]:
+    return {
+        "eval": eval_summary,
+        "cost": cost_summary,
+        "handoff_failure_histogram": handoff_histogram(failures),
+    }
+
+
+def write_final_report(path: str | Path, report: dict[str, Any]) -> None:
+    lines = ["# Final Production Report", "", "## Evaluation", ""]
+    for key, value in report.get("eval", {}).items():
+        lines.append(f"- {key}: {value}")
+    lines += ["", "## Cost", ""]
+    for role, value in report.get("cost", {}).items():
+        lines.append(f"- {role}: {value}")
+    lines += ["", "## Handoff-Failure Histogram", ""]
+    for key, value in report.get("handoff_failure_histogram", {}).items():
+        lines.append(f"- {key}: {value}")
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    Path(path).write_text("\n".join(lines) + "\n")

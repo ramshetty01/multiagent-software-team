@@ -43,6 +43,7 @@ from tests.test_costs import test_call_cost_uses_model_pricing, test_cost_report
 from tests.test_eval_harness import test_load_issue_list_requires_50, test_run_eval_writes_summary
 from tests.test_baseline import test_single_agent_baseline_records_tokens
 from tests.test_probes import test_false_approval_rate_counts_approved_probes, test_injected_bug_probe_uses_reviewer_decision
+from tests.test_final_report import test_final_report_combines_metrics
 
 
 def main() -> int:
@@ -79,6 +80,7 @@ def main() -> int:
         test_load_issue_list_requires_50(Path(tmp))
         test_run_eval_writes_summary(Path(tmp))
         test_single_agent_baseline_records_tokens(Path(tmp))
+        test_final_report_combines_metrics(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
