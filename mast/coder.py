@@ -24,7 +24,16 @@ class CoderWorker:
         matches = self.board.query(run_id=run_id, type="subtask", subtask_id=claim.subtask_id)
         return matches[-1] if matches else None
 
-    def submit_diff(self, run_id: str, subtask: Message, changed: list[str], patch: str, tests: str) -> Message:
+    def submit_diff(
+        self,
+        run_id: str,
+        subtask: Message,
+        changed: list[str],
+        patch: str,
+        tests: str,
+        branch: str | None = None,
+        commit_sha: str | None = None,
+    ) -> Message:
         contract = subtask.payload["contract"]
         allowed = contract["files"] + contract.get("test_impact", [])
         bad = out_of_scope(changed, allowed, generated_lockfiles=bool(contract.get("allow_generated_lockfiles")))
@@ -38,13 +47,18 @@ class CoderWorker:
                 payload={"contract": contract, "changed_files": changed, "out_of_scope": bad},
             )
         else:
+            payload = {"changed_files": changed, "patch": patch, "tests": tests}
+            if branch:
+                payload["branch"] = branch
+            if commit_sha:
+                payload["commit_sha"] = commit_sha
             message = Message(
                 type="diff_ready",
                 run_id=run_id,
                 role=self.coder_id,
                 tags=["merge"],
                 subtask_id=subtask.subtask_id,
-                payload={"changed_files": changed, "patch": patch, "tests": tests},
+                payload=payload,
             )
         self.board.append(message)
         return message
@@ -92,7 +106,15 @@ class CoderWorker:
                     last_error = tests
                     continue
                 committed = manager.commit(info, subtask.subtask_id or "unknown")
-                return self.submit_diff(run_id, subtask, changed_files(info.path, "HEAD~1"), patch, tests + f"\ncommit={committed.commit_sha}")
+                return self.submit_diff(
+                    run_id,
+                    subtask,
+                    changed_files(info.path, "HEAD~1"),
+                    patch,
+                    tests + f"\ncommit={committed.commit_sha}",
+                    branch=committed.branch,
+                    commit_sha=committed.commit_sha,
+                )
             except Exception as exc:
                 last_error = str(exc)
         message = Message(
