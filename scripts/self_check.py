@@ -61,6 +61,7 @@ from tests.test_governance_docs import test_governance_docs_exist
 from tests.test_architecture_docs import test_diagrams_and_adrs_exist
 from tests.test_validation import test_message_validation_runs_for_subtasks, test_subtask_payload_validation_rejects_missing_files
 from tests.test_prompt_registry import test_model_request_carries_prompt_metadata, test_prompt_registry_exposes_versions
+from tests.test_demo_files import test_checked_in_demo_artifacts_exist, test_demo_script_writes_board_and_status
 
 
 def main() -> int:
@@ -102,6 +103,7 @@ def main() -> int:
         test_artifact_cleanup_supports_dry_run(Path(tmp))
         test_cleanup_plan_lists_mast_branches_and_worktrees(Path(tmp))
         test_run_lock_blocks_duplicate_holder(Path(tmp))
+        test_demo_script_writes_board_and_status(Path(tmp))
     test_schema_dag_and_status()
     test_architect_rejects_ambiguous_issue()
     test_merge_reviewer_metrics_and_reporting()
@@ -146,6 +148,7 @@ def main() -> int:
     test_message_validation_runs_for_subtasks()
     test_prompt_registry_exposes_versions()
     test_model_request_carries_prompt_metadata()
+    test_checked_in_demo_artifacts_exist()
     print("self-check passed")
     return 0
 
