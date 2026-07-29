@@ -25,7 +25,7 @@ def test_coder_patch_loop_applies_diff_and_commits(tmp_path):
 -old
 +new
 """
-    subtask = Message(type="subtask", run_id="r2", role="architect", subtask_id="patch", payload={"contract": {"files": ["a.txt"], "test_impact": []}})
+    subtask = Message(type="subtask", run_id="r2", role="architect", subtask_id="patch", payload={"title": "patch", "contract": {"files": ["a.txt"], "test_impact": []}})
     worker = CoderWorker(JsonlTaskBoard(tmp_path / "board.jsonl"), "coder-a", FakeModelProvider({"coder": patch}))
 
     message = worker.implement("r2", str(repo), str(tmp_path / "patch-worktrees"), subtask, ["git", "diff", "--check"])

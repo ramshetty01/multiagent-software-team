@@ -9,7 +9,7 @@ from mast.messages import Message
 def test_claim_subtask_is_atomic_under_parallel_workers(tmp_path):
     board = JsonlTaskBoard(tmp_path / "claims-board.jsonl")
     for index in range(10):
-        board.append(Message(type="subtask", run_id="r1", role="architect", subtask_id=f"s{index}", payload={}))
+        board.append(Message(type="subtask", run_id="r1", role="architect", subtask_id=f"s{index}", payload={"title": str(index), "contract": {"files": [f"{index}.py"]}}))
 
     def claim(index: int):
         return board.claim_subtask("r1", f"worker-{index}")
@@ -23,7 +23,7 @@ def test_claim_subtask_is_atomic_under_parallel_workers(tmp_path):
 
 def test_expired_lease_can_be_reclaimed(tmp_path):
     board = JsonlTaskBoard(tmp_path / "expired-claims-board.jsonl")
-    board.append(Message(type="subtask", run_id="r1", role="architect", subtask_id="s1", payload={}))
+    board.append(Message(type="subtask", run_id="r1", role="architect", subtask_id="s1", payload={"title": "s1", "contract": {"files": ["a.py"]}}))
     assert board.claim_subtask("r1", "old-worker", lease_seconds=0)
 
     claim = board.claim_subtask("r1", "new-worker", lease_seconds=1)

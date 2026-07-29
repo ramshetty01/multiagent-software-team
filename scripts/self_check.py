@@ -59,6 +59,7 @@ from tests.test_errors import test_error_json_is_stable
 from tests.test_container_files import test_container_files_define_cli_entrypoint
 from tests.test_governance_docs import test_governance_docs_exist
 from tests.test_architecture_docs import test_diagrams_and_adrs_exist
+from tests.test_validation import test_message_validation_runs_for_subtasks, test_subtask_payload_validation_rejects_missing_files
 
 
 def main() -> int:
@@ -140,6 +141,8 @@ def main() -> int:
     test_container_files_define_cli_entrypoint()
     test_governance_docs_exist()
     test_diagrams_and_adrs_exist()
+    test_subtask_payload_validation_rejects_missing_files()
+    test_message_validation_runs_for_subtasks()
     print("self-check passed")
     return 0
 

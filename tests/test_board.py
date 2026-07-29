@@ -10,10 +10,9 @@ def test_board_handles_parallel_writes(tmp_path):
     board = JsonlTaskBoard(tmp_path / "board.jsonl")
 
     def write(index: int) -> None:
-        board.append(Message(type="subtask", run_id="r1", role="architect", payload={"index": index}))
+        board.append(Message(type="subtask", run_id="r1", role="architect", payload={"title": str(index), "contract": {"files": [f"{index}.py"]}}))
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         list(pool.map(write, range(50)))
 
     assert len(board.query(run_id="r1", type="subtask")) == 50
-
