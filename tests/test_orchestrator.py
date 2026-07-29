@@ -23,13 +23,13 @@ class FakeOrchestrator(Orchestrator):
 
 def test_orchestrator_resumes_completed_nodes(tmp_path):
     board = JsonlTaskBoard(tmp_path / "board.jsonl")
-    state = RunState("r1", "acme/project#1", ".", 2, str(tmp_path / "board.jsonl"), str(tmp_path))
+    state = RunState("orchestrator-resume", "acme/project#1", str(tmp_path), 2, str(tmp_path / "board.jsonl"), str(tmp_path))
     first = FakeOrchestrator(board).run(state)
     second = FakeOrchestrator(board).run(state)
 
     assert first.status == "succeeded"
     assert second.status == "succeeded"
-    assert len(board.query(run_id="r1", role="orchestrator", tag="node_done")) == 7
+    assert len(board.query(run_id="orchestrator-resume", role="orchestrator", tag="node_done")) == 7
 
 
 def test_orchestrator_uses_real_merge_review_test_nodes(tmp_path):

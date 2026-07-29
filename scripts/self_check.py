@@ -22,7 +22,12 @@ from tests.test_prompts import test_coder_can_draft_patch_from_declared_files, t
 from tests.test_openai_provider import test_openai_provider_maps_responses_output
 from tests.test_reviewer import test_parse_review_json_requires_structured_feedback, test_reviewer_returns_structured_model_feedback
 from tests.test_gemini import test_gemini_provider_maps_generate_content_response
-from tests.test_tester import test_parse_test_failure_json_rejects_unknown_label, test_tester_classifies_failure_without_editing
+from tests.test_tester import (
+    test_parse_test_failure_json_rejects_unknown_label,
+    test_resolve_test_command_rejects_noop_in_production,
+    test_resolve_test_command_uses_project_metadata,
+    test_tester_classifies_failure_without_editing,
+)
 from tests.test_orchestrator import (
     test_orchestrator_coder_node_uses_worktree_patch_loop,
     test_orchestrator_fails_without_required_role_artifacts,
@@ -82,6 +87,8 @@ def main() -> int:
         test_load_config_from_file_and_env(Path(tmp))
         test_coder_can_draft_patch_from_declared_files(Path(tmp))
         test_tester_classifies_failure_without_editing(Path(tmp))
+        test_resolve_test_command_uses_project_metadata(Path(tmp))
+        test_resolve_test_command_rejects_noop_in_production(Path(tmp))
         test_orchestrator_resumes_completed_nodes(Path(tmp))
         test_orchestrator_fails_without_required_role_artifacts(Path(tmp))
         test_orchestrator_coder_node_uses_worktree_patch_loop(Path(tmp))
