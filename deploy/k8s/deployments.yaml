@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mast-orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mast-orchestrator
+  template:
+    metadata:
+      labels:
+        app: mast-orchestrator
+    spec:
+      containers:
+        - name: mast
+          image: mast:latest
+          command: ["python3", "-m", "mast.cli"]
+          args: ["run-graph", "--help"]
+          envFrom:
+            - configMapRef:
+                name: mast-config
+            - secretRef:
+                name: mast-secrets
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mast-coder
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mast-coder
+  template:
+    metadata:
+      labels:
+        app: mast-coder
+    spec:
+      containers:
+        - name: mast
+          image: mast:latest
+          envFrom:
+            - configMapRef:
+                name: mast-config
+            - secretRef:
+                name: mast-secrets
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mast-coder
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mast-coder
+  minReplicas: 1
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+

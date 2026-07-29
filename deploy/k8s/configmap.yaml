@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mast-config
+data:
+  MAST_ENV: production
+  MAST_SANDBOX_BACKEND: daytona
+  MAST_TRACING_BACKEND: langfuse
+
