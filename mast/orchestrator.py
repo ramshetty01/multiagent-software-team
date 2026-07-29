@@ -15,7 +15,7 @@ from .models import ModelProvider
 from .reviewer import Reviewer
 from .coder import CoderWorker
 from .supervisor import WorkerSupervisor
-from .tester import Tester
+from .tester import Tester, resolve_test_command
 
 NodeFn = Callable[["RunState"], "RunState"]
 
@@ -136,7 +136,7 @@ class Orchestrator:
         if not self.board.query(run_id=state.run_id, type="approved", role="reviewer"):
             state.status = "failed"
             return state
-        self.board.append(Tester().test(state.run_id, state.repo, state.test_command or ["python3", "-c", "pass"]))
+        self.board.append(Tester().test(state.run_id, state.repo, resolve_test_command(state.repo, state.test_command)))
         return state
 
     def pr(self, state: RunState) -> RunState:

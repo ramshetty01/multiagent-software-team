@@ -10,6 +10,21 @@ from .prompts import parse_test_failure_json, tester_prompt
 from .runner import LocalRunner
 
 
+def resolve_test_command(repo: str | Path, configured: list[str] | None = None, production: bool = False) -> list[str]:
+    if configured:
+        if production and configured == ["python3", "-c", "pass"]:
+            raise ValueError("no-op test command is not allowed in production")
+        return configured
+    root = Path(repo)
+    if (root / "pyproject.toml").exists() or (root / "tests").exists():
+        return ["python3", "-m", "pytest"]
+    if (root / "package.json").exists():
+        return ["npm", "test"]
+    if production:
+        raise ValueError("could not resolve production test command")
+    return ["python3", "-c", "pass"]
+
+
 class Tester:
     def __init__(self, runner: LocalRunner | None = None, provider: ModelProvider | None = None, model: str = "gemini-pro"):
         self.runner = runner or LocalRunner()

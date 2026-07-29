@@ -5,7 +5,7 @@ import json
 from mast.models import FakeModelProvider
 from mast.prompts import parse_test_failure_json
 from mast.runner import CommandResult
-from mast.tester import Tester
+from mast.tester import Tester, resolve_test_command
 
 
 class FailingRunner:
@@ -30,3 +30,19 @@ def test_parse_test_failure_json_rejects_unknown_label():
     else:
         raise AssertionError("expected validation failure")
 
+
+def test_resolve_test_command_uses_project_metadata(tmp_path):
+    repo = tmp_path / "test-command-repo"
+    repo.mkdir()
+    (repo / "pyproject.toml").write_text("[project]\nname='x'\n", encoding="utf-8")
+
+    assert resolve_test_command(repo) == ["python3", "-m", "pytest"]
+
+
+def test_resolve_test_command_rejects_noop_in_production(tmp_path):
+    try:
+        resolve_test_command(tmp_path, ["python3", "-c", "pass"], production=True)
+    except ValueError as exc:
+        assert "no-op" in str(exc)
+    else:
+        raise AssertionError("expected production no-op rejection")
