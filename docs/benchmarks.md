@@ -70,6 +70,7 @@ A published benchmark report must include:
 - exact repo commit SHA
 - issue IDs or licensed dataset reference
 - model names and provider versions
+- live-provider test status, when `MAST_LIVE_PROVIDER_TESTS=1` is enabled
 - sandbox backend and runner image
 - timeout policy
 - failed issue table
