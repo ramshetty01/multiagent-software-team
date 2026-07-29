@@ -21,7 +21,14 @@ def plan_from_issue(run_id: str, title: str, body: str, provider: ModelProvider 
     if provider:
         response = complete_with_retry(
             provider,
-            ModelRequest(run_id=run_id, role="architect", model=model, prompt=architect_prompt(title, body)),
+            ModelRequest(
+                run_id=run_id,
+                role="architect",
+                model=model,
+                prompt=architect_prompt(title, body),
+                prompt_name="architect.plan",
+                prompt_version="2026-07-30",
+            ),
         )
         model_text = response.text
         try:

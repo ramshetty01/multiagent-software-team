@@ -61,6 +61,8 @@ class CoderWorker:
                 model=self.model,
                 prompt=coder_prompt(subtask.payload, files),
                 files=files,
+                prompt_name="coder.patch",
+                prompt_version="2026-07-30",
             ),
         )
         return response.text
