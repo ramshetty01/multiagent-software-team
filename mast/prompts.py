@@ -46,6 +46,23 @@ def parse_review_json(text: str) -> dict[str, Any]:
     return data
 
 
+def tester_prompt(stdout: str, stderr: str, diff: str, ownership: dict[str, str]) -> str:
+    return (
+        "Classify this test failure. Return JSON with `classification` as one of "
+        "code_regression, flaky_test, environment_error, unknown, plus `subtask_id`, "
+        "`confidence`, and `evidence`. Do not suggest code edits.\n\n"
+        f"Ownership:\n{json.dumps(ownership, indent=2, sort_keys=True)}\n\n"
+        f"Diff:\n{diff}\n\nSTDOUT:\n{stdout}\n\nSTDERR:\n{stderr}"
+    )
+
+
+def parse_test_failure_json(text: str) -> dict[str, Any]:
+    data = json.loads(text)
+    if data.get("classification") not in {"code_regression", "flaky_test", "environment_error", "unknown"}:
+        raise ValueError("invalid test failure classification")
+    return data
+
+
 def parse_architect_json(text: str) -> list[Subtask]:
     data = json.loads(text)
     tasks = []
