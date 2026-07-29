@@ -7,8 +7,11 @@ from typing import Callable
 from .architect import plan_from_issue
 from .board import JsonlTaskBoard, append_many
 from .github import GhIssueClient, parse_issue_ref, save_issue_context
+from .merge import MergeCoordinator
 from .messages import Message
+from .reviewer import Reviewer
 from .supervisor import WorkerSupervisor
+from .tester import Tester
 
 NodeFn = Callable[["RunState"], "RunState"]
 
@@ -83,15 +86,18 @@ class Orchestrator:
         return state
 
     def merge(self, state: RunState) -> RunState:
-        self.board.append(Message(type="review_needed", run_id=state.run_id, role="merge", tags=["reviewer"], payload={"staging_branch": f"staging/{state.run_id}"}))
+        diffs = self.board.query(run_id=state.run_id, type="diff_ready")
+        self.board.append(MergeCoordinator().merge(state.run_id, diffs))
         return state
 
     def review(self, state: RunState) -> RunState:
-        self.board.append(Message(type="approved", run_id=state.run_id, role="reviewer", tags=["tester"], payload={"summary": "approved by orchestration placeholder"}))
+        diffs = self.board.query(run_id=state.run_id, type="diff_ready")
+        diff_summary = "\n".join(message.payload.get("patch", "") for message in diffs)
+        self.board.append(Reviewer().review(state.run_id, "merge", "reviewer", diff_summary))
         return state
 
     def test(self, state: RunState) -> RunState:
-        self.board.append(Message(type="test_passed", run_id=state.run_id, role="tester", tags=["pr"], payload={"command": [], "stdout": "orchestration placeholder"}))
+        self.board.append(Tester().test(state.run_id, state.repo, ["python3", "-c", "pass"]))
         return state
 
     def pr(self, state: RunState) -> RunState:
