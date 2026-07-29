@@ -13,9 +13,27 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
       - name: Self check
         run: scripts/self_check.py
+      - name: Pytest
+        run: pytest --cov=mast --cov-report=xml
+      - name: Ruff
+        run: ruff check .
+      - name: Mypy
+        run: mypy mast
       - name: Secret scan
         run: |
           ! git grep -nE '(gho_|sk-[A-Za-z0-9]|ANTHROPIC_API_KEY=.+|OPENAI_API_KEY=.+|GOOGLE_API_KEY=.+)' -- ':!*.example' ':!docs/*'
-
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: python
+      - uses: github/codeql-action/analyze@v3
