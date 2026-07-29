@@ -1,0 +1,20 @@
+{
+  "results": [
+    {
+      "baseline_passed": false,
+      "baseline_seconds": 960.0,
+      "baseline_tokens": 124000,
+      "issue": "django__django-12345",
+      "multi_agent_passed": true,
+      "multi_agent_seconds": 410.0,
+      "multi_agent_tokens": 231000
+    }
+  ],
+  "summary": {
+    "baseline_pass_at_1": 0.0,
+    "baseline_tokens": 124000,
+    "multi_agent_pass_at_1": 1.0,
+    "multi_agent_tokens": 231000,
+    "speedup": 2.341463414634146
+  }
+}
