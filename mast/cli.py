@@ -9,6 +9,7 @@ from .architect import plan_from_issue
 from .board import JsonlTaskBoard, append_many
 from .config import load_config
 from .errors import error_json
+from .eval import RunOutcome, run_paired_eval
 from .github import GhIssueClient, GitHubError, parse_issue_ref, save_issue_context
 from .messages import Message
 from .locks import RunLock
@@ -48,6 +49,9 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("schema")
 
+    eval_dry = sub.add_parser("eval-dry-run")
+    eval_dry.add_argument("--out", default="runs/eval.json")
+
     run_graph = sub.add_parser("run-graph")
     run_graph.add_argument("--issue", required=True)
     run_graph.add_argument("--repo", default=".")
@@ -71,6 +75,15 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.cmd == "schema":
         print(json.dumps(export_schema(), indent=2, sort_keys=True))
+        return 0
+    if args.cmd == "eval-dry-run":
+        summary = run_paired_eval(
+            ["dry-1", "dry-2"],
+            lambda issue: RunOutcome(True, 1.0, 10),
+            lambda issue: RunOutcome(False, 2.0, 20),
+            args.out,
+        )
+        print(json.dumps(summary, indent=2, sort_keys=True))
         return 0
     if args.cmd == "run-graph":
         with RunLock(Path(args.artifact_dir) / "locks", args.run_id):

@@ -56,3 +56,25 @@ def run_eval(issues: list[str], runner: Callable[[str], EvalResult], out: str | 
     results = [runner(issue) for issue in issues]
     write_eval(out, results)
     return summarize(results)
+
+
+@dataclass(frozen=True)
+class RunOutcome:
+    passed: bool
+    seconds: float
+    tokens: int
+
+
+def run_paired_eval(
+    issues: list[str],
+    multi_agent: Callable[[str], RunOutcome],
+    baseline: Callable[[str], RunOutcome],
+    out: str | Path,
+) -> dict[str, float]:
+    results = []
+    for issue in issues:
+        multi = multi_agent(issue)
+        base = baseline(issue)
+        results.append(EvalResult(issue, multi.passed, base.passed, multi.seconds, base.seconds, multi.tokens, base.tokens))
+    write_eval(out, results)
+    return summarize(results)
