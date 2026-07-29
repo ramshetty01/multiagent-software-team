@@ -32,6 +32,9 @@ class RunState:
     artifact_dir: str
     test_command: list[str] | None = None
     create_pr: bool = False
+    max_review_loops: int = 3
+    max_tester_reruns: int = 1
+    max_conflict_files: int = 2
     status: str = "running"
     completed_nodes: list[str] | None = None
 
@@ -124,6 +127,11 @@ class Orchestrator:
             self.board.append(Message(type="rejected", run_id=state.run_id, role="merge", tags=["merge"], payload={"reason": "no coder diffs ready"}))
             return state
         branches = [message.payload.get("branch") for message in diffs]
+        overlaps = [path for message in diffs for path in message.payload.get("changed_files", [])]
+        if len(overlaps) - len(set(overlaps)) > state.max_conflict_files:
+            state.status = "failed"
+            self.board.append(Message(type="rejected", run_id=state.run_id, role="merge", tags=["merge", "conflict"], payload={"reason": "conflict file limit exceeded"}))
+            return state
         if branches and all(isinstance(branch, str) and branch for branch in branches):
             base_ref = git(state.repo, "branch", "--show-current") or "HEAD"
             self.board.append(MergeCoordinator().merge_branches(state.run_id, state.repo, base_ref, branches))
@@ -139,7 +147,7 @@ class Orchestrator:
         diff_summary = "\n".join(message.payload.get("patch", "") for message in diffs)
         decision = Reviewer().review(state.run_id, "merge", "reviewer", diff_summary)
         if decision.type == "review_feedback":
-            route_review_feedback(self.board, state.run_id, decision)
+            route_review_feedback(self.board, state.run_id, decision, max_attempts=state.max_review_loops)
             state.status = "failed"
             return state
         self.board.append(decision)
@@ -149,7 +157,7 @@ class Orchestrator:
         if not self.board.query(run_id=state.run_id, type="approved", role="reviewer"):
             state.status = "failed"
             return state
-        self.board.append(Tester().test(state.run_id, state.repo, resolve_test_command(state.repo, state.test_command)))
+        self.board.append(Tester().test(state.run_id, state.repo, resolve_test_command(state.repo, state.test_command), retries=state.max_tester_reruns))
         return state
 
     def pr(self, state: RunState) -> RunState:

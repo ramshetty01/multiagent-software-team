@@ -19,6 +19,22 @@ class ModelConfig:
 
 
 @dataclass(frozen=True)
+class RuntimeLimits:
+    role_timeout_seconds: int = 900
+    retry_count: int = 2
+    max_review_loops: int = 3
+    max_tester_reruns: int = 1
+    max_conflict_files: int = 2
+    max_role_tokens: int = 200_000
+
+    def validate(self) -> None:
+        values = self.__dict__
+        invalid = [name for name, value in values.items() if int(value) <= 0]
+        if invalid:
+            raise ValueError(f"runtime limits must be positive: {', '.join(invalid)}")
+
+
+@dataclass(frozen=True)
 class AppConfig:
     environment: str = "local"
     github_token: str | None = None
@@ -30,8 +46,10 @@ class AppConfig:
     sandbox_backend: str = "local"
     tracing_backend: str = "jsonl"
     models: ModelConfig = ModelConfig()
+    limits: RuntimeLimits = RuntimeLimits()
 
     def validate(self) -> None:
+        self.limits.validate()
         if self.environment == "production":
             missing = [
                 name
@@ -59,6 +77,7 @@ def load_config(path: str | Path | None = None, env: dict[str, str] | None = Non
             values.update(json.loads(candidate.read_text()))
     source = env or os.environ
     models = values.get("models", {})
+    limits = values.get("limits", {})
     config = AppConfig(
         environment=source.get("MAST_ENV", values.get("environment", "local")),
         github_token=source.get("GITHUB_TOKEN", values.get("github_token")),
@@ -74,6 +93,14 @@ def load_config(path: str | Path | None = None, env: dict[str, str] | None = Non
             coder=source.get("MAST_CODER_MODEL", models.get("coder", "claude-sonnet")),
             reviewer=source.get("MAST_REVIEWER_MODEL", models.get("reviewer", "gpt-5")),
             tester=source.get("MAST_TESTER_MODEL", models.get("tester", "gemini-pro")),
+        ),
+        limits=RuntimeLimits(
+            role_timeout_seconds=int(source.get("MAST_ROLE_TIMEOUT_SECONDS", limits.get("role_timeout_seconds", 900))),
+            retry_count=int(source.get("MAST_RETRY_COUNT", limits.get("retry_count", 2))),
+            max_review_loops=int(source.get("MAST_MAX_REVIEW_LOOPS", limits.get("max_review_loops", 3))),
+            max_tester_reruns=int(source.get("MAST_MAX_TESTER_RERUNS", limits.get("max_tester_reruns", 1))),
+            max_conflict_files=int(source.get("MAST_MAX_CONFLICT_FILES", limits.get("max_conflict_files", 2))),
+            max_role_tokens=int(source.get("MAST_MAX_ROLE_TOKENS", limits.get("max_role_tokens", 200_000))),
         ),
     )
     config.validate()
@@ -93,4 +120,3 @@ def redact_secrets(text: str, config: AppConfig) -> str:
         if value:
             redacted = redacted.replace(value, "[REDACTED]")
     return redacted
-
