@@ -42,8 +42,30 @@ class TraceLog:
         return dict(totals)
 
 
+class LangfuseTraceLog(TraceLog):
+    def __init__(self, path: str | Path, client=None):
+        super().__init__(path)
+        self.client = client
+
+    def record(self, **kwargs) -> Span:
+        span = super().record(**kwargs)
+        if self.client:
+            try:
+                self.client.trace(id=span.trace_id, name=span.role, metadata=asdict(span))
+            except Exception:
+                pass
+        return span
+
+
+def trace_log_for_backend(backend: str, path: str | Path, client=None) -> TraceLog:
+    if backend == "jsonl":
+        return TraceLog(path)
+    if backend == "langfuse":
+        return LangfuseTraceLog(path, client)
+    raise ValueError(f"unsupported tracing backend: {backend}")
+
+
 def token_amplification(coder_tokens: int, extra_tokens: int) -> float:
     if coder_tokens <= 0:
         return 0.0
     return (coder_tokens + extra_tokens) / coder_tokens
-
