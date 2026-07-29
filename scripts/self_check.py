@@ -55,6 +55,7 @@ from tests.test_artifact_cleanup import test_artifact_cleanup_supports_dry_run
 from tests.test_cleanup import test_cleanup_plan_lists_mast_branches_and_worktrees
 from tests.test_eval_validation import test_validate_issue_ids_rejects_placeholders
 from tests.test_locks import test_run_lock_blocks_duplicate_holder
+from tests.test_errors import test_error_json_is_stable
 
 
 def main() -> int:
@@ -132,6 +133,7 @@ def main() -> int:
     test_provider_factory_requires_prod_keys()
     test_export_schema_lists_message_types()
     test_validate_issue_ids_rejects_placeholders()
+    test_error_json_is_stable()
     print("self-check passed")
     return 0
 

@@ -8,6 +8,7 @@ from uuid import uuid4
 from .architect import plan_from_issue
 from .board import JsonlTaskBoard, append_many
 from .config import load_config
+from .errors import error_json
 from .github import GhIssueClient, GitHubError, parse_issue_ref, save_issue_context
 from .messages import Message
 from .locks import RunLock
@@ -83,14 +84,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         config = load_config(args.config)
     except ValueError as exc:
-        print(json.dumps({"error": "invalid_config", "message": str(exc)}, sort_keys=True))
+        print(error_json("invalid_config", str(exc)))
         return 2
     board = JsonlTaskBoard(args.board)
     if not board.query(run_id=run_id):
         try:
             issue_context = GhIssueClient().fetch_issue(parse_issue_ref(args.issue))
         except GitHubError as exc:
-            print(json.dumps(exc.to_dict(), sort_keys=True))
+            print(error_json(exc.code, exc.message))
             return 2
         issue_artifact = save_issue_context(issue_context, Path(args.artifact_dir) / run_id / "issue.json")
         append_many(
