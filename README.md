@@ -36,3 +36,10 @@ The MVP uses local process isolation and git worktree helpers first. Daytona,
 LangGraph, model clients, and LLM conflict resolution are kept behind narrow
 interfaces so they can be swapped in without changing the task-board contract.
 
+## Production Docs
+
+- [Configuration](docs/configuration.md)
+- [Operator setup](docs/operator-setup.md)
+- [Architecture](docs/architecture.md)
+- [Run lifecycle](docs/run-lifecycle.md)
+- [Troubleshooting](docs/troubleshooting.md)

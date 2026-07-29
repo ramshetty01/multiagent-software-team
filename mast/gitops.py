@@ -17,7 +17,40 @@ def changed_files(repo: str | Path, base_ref: str = "HEAD") -> list[str]:
 def ensure_worktree(repo: str | Path, branch: str, path: str | Path) -> Path:
     target = Path(path)
     if target.exists():
+        if is_dirty(target):
+            raise RuntimeError(f"worktree is dirty: {target}")
         return target
     git(repo, "worktree", "add", "-b", branch, str(target))
     return target
 
+
+def branch_name(run_id: str, subtask_id: str) -> str:
+    safe_run = _safe_ref(run_id)
+    safe_subtask = _safe_ref(subtask_id)
+    return f"mast/{safe_run}/{safe_subtask}"
+
+
+def worktree_path(root: str | Path, run_id: str, subtask_id: str) -> Path:
+    return Path(root) / _safe_ref(run_id) / _safe_ref(subtask_id)
+
+
+def is_dirty(repo: str | Path) -> bool:
+    return bool(git(repo, "status", "--porcelain"))
+
+
+def commit_all(repo: str | Path, message: str) -> str | None:
+    if not is_dirty(repo):
+        return None
+    git(repo, "add", "-A")
+    git(repo, "commit", "-m", message)
+    return git(repo, "rev-parse", "HEAD")
+
+
+def apply_patch(repo: str | Path, patch: str) -> None:
+    process = subprocess.run(["git", "apply", "-"], cwd=repo, input=patch, text=True, capture_output=True)
+    if process.returncode != 0:
+        raise RuntimeError(process.stderr.strip() or "git apply failed")
+
+
+def _safe_ref(value: str) -> str:
+    return "".join(char if char.isalnum() or char in "-_" else "-" for char in value).strip("-") or "unknown"

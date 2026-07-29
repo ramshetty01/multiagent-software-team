@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Callable
 
 
 @dataclass(frozen=True)
@@ -36,3 +37,15 @@ def write_eval(path: str | Path, results: list[EvalResult]) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 
+
+def load_issue_list(path: str | Path) -> list[str]:
+    issues = [line.strip() for line in Path(path).read_text().splitlines() if line.strip() and not line.startswith("#")]
+    if len(issues) != 50:
+        raise ValueError("SWE-bench Pro evaluation requires exactly 50 issues")
+    return issues
+
+
+def run_eval(issues: list[str], runner: Callable[[str], EvalResult], out: str | Path) -> dict[str, float]:
+    results = [runner(issue) for issue in issues]
+    write_eval(out, results)
+    return summarize(results)

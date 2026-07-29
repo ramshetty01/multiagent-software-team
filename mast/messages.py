@@ -17,6 +17,8 @@ MessageType = Literal[
     "replan_needed",
     "test_passed",
     "test_failed",
+    "subtask_claimed",
+    "subtask_requeued",
 ]
 
 MESSAGE_TYPES = set(MessageType.__args__)
@@ -60,4 +62,3 @@ class Message:
             created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
             trace_id=data.get("trace_id"),
         )
-
