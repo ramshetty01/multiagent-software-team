@@ -46,5 +46,11 @@ def commit_all(repo: str | Path, message: str) -> str | None:
     return git(repo, "rev-parse", "HEAD")
 
 
+def apply_patch(repo: str | Path, patch: str) -> None:
+    process = subprocess.run(["git", "apply", "-"], cwd=repo, input=patch, text=True, capture_output=True)
+    if process.returncode != 0:
+        raise RuntimeError(process.stderr.strip() or "git apply failed")
+
+
 def _safe_ref(value: str) -> str:
     return "".join(char if char.isalnum() or char in "-_" else "-" for char in value).strip("-") or "unknown"
