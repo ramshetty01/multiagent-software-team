@@ -174,4 +174,5 @@ outcomes until those are independently demonstrated.
 PR: https://github.com/ramshetty01/multiagent-software-team/pull/146
 Issues: #143 truthful execution/resume, #144 DAG scheduling, #145 package installation,
 and #147 credential-scan false positives. A stacked follow-up addresses #148 host Git
-helper execution. These changes are unmerged at this snapshot.
+helper execution: https://github.com/ramshetty01/multiagent-software-team/pull/149.
+PR #146 CI passed after the scan fix. These changes are unmerged at this snapshot.
