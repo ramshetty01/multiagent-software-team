@@ -1,4 +1,4 @@
-# Multi-Agent Software Engineering Team — project brief
+# Multi-Agent Software Team — project brief
 
 Repository: https://github.com/ramshetty01/multiagent-software-team
 
@@ -175,4 +175,4 @@ PR: https://github.com/ramshetty01/multiagent-software-team/pull/146
 Issues: #143 truthful execution/resume, #144 DAG scheduling, #145 package installation,
 and #147 credential-scan false positives. A stacked follow-up addresses #148 host Git
 helper execution: https://github.com/ramshetty01/multiagent-software-team/pull/149.
-PR #146 CI passed after the scan fix. These changes are unmerged at this snapshot.
+PR #146 CI passed after the scan fix. PRs #146 and #149 are merged into main. No public deployment was performed.
