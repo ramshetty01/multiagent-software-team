@@ -123,8 +123,10 @@ Use `--create-pr` only when publishing is intended. There is no automatic PR mer
 - Full offline workflow with fake models and real temporary Git worktrees: the second
   coder sees its prerequisite change, both patches merge, final verification runs and
   repeat invocation does not duplicate events.
-- Current local suite: 113 tests passed and four live-provider tests skipped. Ruff and mypy pass.
+- Current local suite: 118 tests passed and four live-provider tests skipped. Ruff and mypy pass.
 - Fixed CI credential-scan false positives without printing matched credential values.
+- Reproduced and blocked host hook/diff-helper execution with harmless temporary-repository
+  marker scripts; tests also cover fsmonitor/textconv and credential environment removal.
 - Provider-backed tests remain explicitly gated and were not run in this upgrade.
 
 ## Remaining production blockers
@@ -135,8 +137,10 @@ Use `--create-pr` only when publishing is intended. There is no automatic PR mer
    some limit fields are contracts rather than fully enforced end-to-end budgets.
 3. Durable transactional state, crash recovery across partial filesystem/Git operations,
    lease renewal, distributed coordination and full LangGraph persistence if adopted.
-4. Stronger hostile-repository isolation, least-privilege host Git operations, complete
-   secret-safe artifact handling and a validated sandbox image/runtime policy.
+4. Stronger hostile-repository isolation and complete secret-safe artifact handling.
+   Automated host Git now disables hooks/fsmonitor/signing and external diff/textconv,
+   but custom filter/merge drivers and other local configuration remain outside Docker.
+   A disposable isolated Git execution design and validated sandbox image are still needed.
 5. Clean-test snapshot guarantees, merge-conflict recovery and automated bounded
    feedback repair across all failure modes; current feedback resumes are operator-driven.
 6. Reproducible dependency lock, real Docker integration tests and validated deployment.
@@ -169,4 +173,5 @@ outcomes until those are independently demonstrated.
 
 PR: https://github.com/ramshetty01/multiagent-software-team/pull/146
 Issues: #143 truthful execution/resume, #144 DAG scheduling, #145 package installation,
-and #147 credential-scan false positives. The PR is unmerged at this snapshot.
+and #147 credential-scan false positives. A stacked follow-up addresses #148 host Git
+helper execution. These changes are unmerged at this snapshot.
