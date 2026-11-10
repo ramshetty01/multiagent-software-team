@@ -19,3 +19,11 @@ public issue for exploitable sandbox, secret, or command-execution problems.
 ## Non-Goals
 
 The default local runner is not a security boundary.
+
+## CI credential-literal check
+
+`python scripts/scan_secrets.py` checks tracked UTF-8 files for credential-like token
+literals with boundaries and minimum lengths. It reports only file/line locations,
+never matched values. This heuristic is not exhaustive: it does not inspect Git
+history, binaries, split/encoded secrets or arbitrary provider credentials. Use a
+provider-aware secret scanner and secret rotation procedures for release operations.

@@ -24,8 +24,7 @@ jobs:
       - name: Mypy
         run: mypy mast
       - name: Secret scan
-        run: |
-          ! git grep -nE '(gho_|sk-[A-Za-z0-9]|ANTHROPIC_API_KEY=.+|OPENAI_API_KEY=.+|GOOGLE_API_KEY=.+)' -- ':!*.example' ':!docs/*'
+        run: python scripts/scan_secrets.py
   codeql:
     runs-on: ubuntu-latest
     permissions:

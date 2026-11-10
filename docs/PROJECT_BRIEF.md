@@ -123,6 +123,8 @@ Use `--create-pr` only when publishing is intended. There is no automatic PR mer
 - Full offline workflow with fake models and real temporary Git worktrees: the second
   coder sees its prerequisite change, both patches merge, final verification runs and
   repeat invocation does not duplicate events.
+- Current local suite: 113 tests passed and four live-provider tests skipped. Ruff and mypy pass.
+- Fixed CI credential-scan false positives without printing matched credential values.
 - Provider-backed tests remain explicitly gated and were not run in this upgrade.
 
 ## Remaining production blockers
@@ -162,3 +164,9 @@ outcomes until those are independently demonstrated.
 - Why model review, executed tests and sandbox isolation are separate controls.
 - How to design an honest evaluation against a single-agent baseline without treating
   synthetic fixtures as real-world accuracy.
+
+## Change tracking
+
+PR: https://github.com/ramshetty01/multiagent-software-team/pull/146
+Issues: #143 truthful execution/resume, #144 DAG scheduling, #145 package installation,
+and #147 credential-scan false positives. The PR is unmerged at this snapshot.
