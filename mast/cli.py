@@ -11,8 +11,8 @@ from .config import load_config
 from .errors import error_json
 from .eval import RunOutcome, run_paired_eval
 from .github import GhIssueClient, GitHubError, parse_issue_ref, save_issue_context
-from .messages import Message
 from .locks import RunLock
+from .messages import Message
 from .orchestrator import Orchestrator, RunState
 from .preflight import preflight_ok, run_preflight
 from .reporting import write_postmortem
@@ -60,6 +60,8 @@ def main(argv: list[str] | None = None) -> int:
     run_graph.add_argument("--board", default="runs/board.jsonl")
     run_graph.add_argument("--artifact-dir", default="runs")
     run_graph.add_argument("--create-pr", action="store_true")
+    run_graph.add_argument("--execute", action="store_true", help="Explicit live execution; requires production config and Docker")
+    run_graph.add_argument("--config")
 
     args = parser.parse_args(argv)
     if args.cmd == "report":
@@ -86,25 +88,26 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(summary, indent=2, sort_keys=True))
         return 0
     if args.cmd == "run-graph":
-        config = load_config()
-        with RunLock(Path(args.artifact_dir) / "locks", args.run_id):
-            state = Orchestrator(JsonlTaskBoard(args.board)).run(
-                RunState(
-                    args.run_id,
-                    args.issue,
-                    args.repo,
-                    args.parallelism,
-                    args.board,
-                    args.artifact_dir,
-                    create_pr=args.create_pr,
-                    max_review_loops=config.limits.max_review_loops,
-                    max_tester_reruns=config.limits.max_tester_reruns,
-                    max_conflict_files=config.limits.max_conflict_files,
+        try:
+            config = load_config(args.config)
+            if args.parallelism < 1 or args.parallelism > 16:
+                raise ValueError("parallelism must be between 1 and 16")
+            with RunLock(Path(args.artifact_dir) / "locks", args.run_id):
+                state = Orchestrator(JsonlTaskBoard(args.board), config=config).run(
+                    RunState(
+                        args.run_id, args.issue, args.repo, args.parallelism, args.board, args.artifact_dir,
+                        create_pr=args.create_pr, demo=not args.execute,
+                        max_review_loops=config.limits.max_review_loops,
+                        max_tester_reruns=config.limits.max_tester_reruns,
+                        max_conflict_files=config.limits.max_conflict_files,
+                    )
                 )
-            )
+        except (ValueError, RuntimeError) as exc:
+            print(error_json("graph_failed", str(exc)))
+            return 2
         print(f"run_id={state.run_id}")
         print(f"status={state.status}")
-        return 0
+        return 0 if state.status in {"succeeded", "demo_completed"} else 2
 
     run_id = args.run_id or str(uuid4())
     try:

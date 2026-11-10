@@ -13,6 +13,12 @@ def run_status(board: JsonlTaskBoard, run_id: str) -> dict[str, object]:
         terminal = "succeeded"
     if counts.get("test_failed") or counts.get("rejected"):
         terminal = "blocked"
+    explicit = [m for m in messages if m.role == "orchestrator" and "run_terminal" in m.tags]
+    demo = [m for m in messages if m.role == "pr" and m.payload.get("status") == "demo_completed"]
+    if explicit:
+        terminal = explicit[-1].payload["status"]
+    elif demo:
+        terminal = "demo_completed"
     return {
         "run_id": run_id,
         "status": terminal,

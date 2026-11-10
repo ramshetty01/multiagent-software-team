@@ -8,7 +8,6 @@ from mast.config import AppConfig
 from mast.models import ModelRequest
 from mast.providers import provider_for_role
 
-
 pytestmark = pytest.mark.skipif(os.environ.get("MAST_LIVE_PROVIDER_TESTS") != "1", reason="live provider tests are opt-in")
 
 

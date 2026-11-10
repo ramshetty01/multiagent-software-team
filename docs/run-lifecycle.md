@@ -1,3 +1,5 @@
+> Current execution and resume semantics are documented in [PROJECT_BRIEF.md](PROJECT_BRIEF.md). Demo completion is explicitly distinct from verified execution; live execution requires `--execute` and Docker.
+
 # Run Lifecycle
 
 1. Intake fetches the GitHub issue and stores `issue.json`.

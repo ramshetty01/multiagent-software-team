@@ -19,7 +19,7 @@ and cost accounting. This project splits the workflow into explicit roles:
 
 ## Current Status
 
-This repository is a production-oriented scaffold. It includes the core
+This repository is a tested orchestration prototype, not a production-certified service. It includes the core
 contracts, adapters, runners, CLI commands, tests, and deployment skeleton, but
 it is not yet a published benchmark result. Live autonomous runs require real
 provider credentials and a sandbox backend.
@@ -67,6 +67,22 @@ Run a local dry issue intake flow:
 mast run --issue ramshetty01/multiagent-software-team#97 --run-id demo --board /tmp/mast-board.jsonl --artifact-dir /tmp/mast-artifacts
 mast status --board /tmp/mast-board.jsonl --run-id demo
 ```
+
+## Execution modes and recovery
+
+`mast run-graph` defaults to a **demo** and reports `demo_completed`; it does not
+implement code, execute project tests or publish a PR. Add `--execute --config PATH`
+for explicitly configured live execution. This requires production provider settings
+and Docker; unsupported live backends are rejected. Configure `MAST_SANDBOX_IMAGE`
+with a prebuilt image containing the target test dependencies.
+
+Only successful stages are checkpointed. Failed stages can be retried with the same
+run ID; completed runs restore their terminal outcome. Dependency claims and requeues
+control task scheduling, and incomplete DAGs cannot advance to merge. A run ID cannot
+be reused for another repository, issue or execution mode. Old checkpoint formats
+require a new run ID. Graph failures return a nonzero CLI exit code.
+
+[Project brief, verified workflow and remaining production blockers](docs/PROJECT_BRIEF.md).
 
 ## Configuration
 
@@ -147,7 +163,7 @@ production runs. See [docs/threat-model.md](docs/threat-model.md).
 
 - Publish a real E2E demo run.
 - Replace placeholder benchmark issue IDs with licensed SWE-bench Pro IDs.
-- Add full LangGraph checkpoint persistence.
+- Add full LangGraph checkpoint persistence; the former identity-node scaffold now raises an explicit not-implemented error.
 - Add live-provider integration test suite behind explicit environment gates.
 - Add docs site and benchmark report.
 

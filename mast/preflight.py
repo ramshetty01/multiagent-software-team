@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .config import AppConfig, load_config
@@ -23,7 +23,7 @@ def run_preflight(config_path: str | None = None, repo: str | Path = ".") -> lis
     try:
         config = load_config(config_path)
         checks.append(Check("config", True, f"{config.environment}/{config.sandbox_backend}/{config.tracing_backend}"))
-    except Exception as exc:
+    except (OSError, ValueError, TypeError) as exc:
         config = AppConfig()
         checks.append(Check("config", False, str(exc)))
     checks.append(_tool_check("git"))
@@ -45,14 +45,14 @@ def _tool_check(name: str) -> Check:
 
 
 def _git_repo_check(repo: str | Path) -> Check:
-    result = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo, text=True, capture_output=True)
+    result = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo, text=True, capture_output=True, check=False)
     return Check("git_repo", result.returncode == 0 and result.stdout.strip() == "true", result.stderr.strip() or result.stdout.strip())
 
 
 def _gh_auth_check() -> Check:
     if not shutil.which("gh"):
         return Check("gh_auth", False, "gh not found")
-    result = subprocess.run(["gh", "auth", "status"], text=True, capture_output=True)
+    result = subprocess.run(["gh", "auth", "status"], text=True, capture_output=True, check=False)
     detail = result.stderr.strip() or result.stdout.strip()
     return Check("gh_auth", result.returncode == 0, detail.splitlines()[0] if detail else "ok")
 

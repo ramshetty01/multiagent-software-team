@@ -28,8 +28,8 @@ def test_orchestrator_resumes_completed_nodes(tmp_path):
     first = FakeOrchestrator(board).run(state)
     second = FakeOrchestrator(board).run(state)
 
-    assert first.status == "succeeded"
-    assert second.status == "succeeded"
+    assert first.status == "demo_completed"
+    assert second.status == "demo_completed"
     assert len(board.query(run_id="orchestrator-resume", role="orchestrator", tag="node_done")) == 7
 
 
@@ -45,7 +45,8 @@ def test_orchestrator_uses_real_merge_review_test_nodes(tmp_path):
 
     assert board.query(run_id="r2", type="review_needed")
     assert board.query(run_id="r2", type="approved")
-    assert board.query(run_id="r2", type="test_passed")
+    assert not board.query(run_id="r2", type="test_passed")
+    assert board.query(run_id="r2", role="tester", tag="demo")
 
 
 def test_orchestrator_fails_without_required_role_artifacts(tmp_path):
@@ -85,7 +86,7 @@ def test_orchestrator_coder_node_uses_worktree_patch_loop(tmp_path):
             payload={"title": "Change a", "contract": {"files": ["a.txt"], "test_impact": []}},
         )
     )
-    state = RunState("r4", "acme/project#1", str(repo), 1, str(tmp_path / "board.jsonl"), str(tmp_path))
+    state = RunState("r4", "acme/project#1", str(repo), 1, str(tmp_path / "board.jsonl"), str(tmp_path), demo=False, test_command=["git", "diff", "--check"])
 
     Orchestrator(board, coder_provider=FakeModelProvider({"coder": patch})).coder_fanout(state)
 
@@ -159,7 +160,7 @@ def test_orchestrator_pr_node_can_call_idempotent_creator(tmp_path):
     board.append(Message(type="review_needed", run_id="r7", role="merge", payload={"staging_branch": "staging/r7"}))
     board.append(Message(type="approved", run_id="r7", role="reviewer", payload={}))
     board.append(Message(type="test_passed", run_id="r7", role="tester", payload={}))
-    state = RunState("r7", "acme/project#7", str(tmp_path), 1, str(tmp_path / "pr-board.jsonl"), str(tmp_path), create_pr=True)
+    state = RunState("r7", "acme/project#7", str(tmp_path), 1, str(tmp_path / "pr-board.jsonl"), str(tmp_path), create_pr=True, demo=False)
 
     result = Orchestrator(board, pr_creator=fake_creator).pr(state)
 
@@ -175,5 +176,5 @@ def test_orchestrator_records_role_boundary_spans(tmp_path):
 
     result = FakeOrchestrator(board, trace_log=trace).run(state)
 
-    assert result.status == "succeeded"
+    assert result.status == "demo_completed"
     assert set(trace.metrics()) >= {"intake", "architect", "coder_fanout", "merge", "review", "test", "pr"}

@@ -14,7 +14,7 @@ class FailingRunner:
 
 def test_artifact_store_writes_json(tmp_path):
     path = ArtifactStore(tmp_path).write_json("r1", "data.json", {"ok": True})
-    assert json.loads(open(path).read())["ok"] is True
+    assert json.loads(__import__("pathlib").Path(path).read_text())["ok"] is True
 
 
 def test_tester_failure_links_artifacts(tmp_path):

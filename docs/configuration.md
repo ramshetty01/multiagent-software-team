@@ -20,3 +20,12 @@ Production runs require GitHub and model provider credentials through
 environment variables. Copy `.env.example` and fill values in your secret
 manager; do not commit real secrets.
 
+
+## Graph execution
+
+`--execute` requires production provider settings and `sandbox_backend: docker`.
+The graph passes configured models/providers to each role and uses Docker for coder
+checks and final tests. `MAST_SANDBOX_IMAGE` / `sandbox_image` selects a prebuilt image
+with target test dependencies. Network access is disabled inside command containers.
+Daytona graph execution is withheld until repository synchronization is implemented.
+Local mode remains a demo, explicitly labelled `demo_completed`.

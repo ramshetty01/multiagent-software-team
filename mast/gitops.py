@@ -47,7 +47,7 @@ def commit_all(repo: str | Path, message: str) -> str | None:
 
 
 def apply_patch(repo: str | Path, patch: str) -> None:
-    process = subprocess.run(["git", "apply", "-"], cwd=repo, input=patch, text=True, capture_output=True)
+    process = subprocess.run(["git", "apply", "-"], cwd=repo, input=patch, text=True, capture_output=True, check=False)
     if process.returncode != 0:
         raise RuntimeError(process.stderr.strip() or "git apply failed")
 

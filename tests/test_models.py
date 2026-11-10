@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from mast.architect import plan_from_issue
 import json
 
+from mast.architect import plan_from_issue
 from mast.models import FakeModelProvider, ModelProviderError, ModelRequest, complete_with_retry
 from mast.reviewer import Reviewer
 

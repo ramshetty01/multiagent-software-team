@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 SECRET_NAMES = ("API_KEY", "TOKEN", "SECRET", "PASSWORD")
 
 
@@ -45,11 +44,14 @@ class AppConfig:
     langfuse_secret_key: str | None = None
     sandbox_backend: str = "local"
     tracing_backend: str = "jsonl"
+    sandbox_image: str = "python:3.12-slim"
     models: ModelConfig = ModelConfig()
     limits: RuntimeLimits = RuntimeLimits()
 
     def validate(self) -> None:
         self.limits.validate()
+        if self.environment not in {"local", "production"}:
+            raise ValueError("environment must be local or production")
         if self.environment == "production":
             missing = [
                 name
@@ -75,7 +77,7 @@ def load_config(path: str | Path | None = None, env: dict[str, str] | None = Non
         candidate = Path(path)
         if candidate.exists():
             values.update(json.loads(candidate.read_text()))
-    source = env or os.environ
+    source = os.environ if env is None else env
     models = values.get("models", {})
     limits = values.get("limits", {})
     config = AppConfig(
@@ -87,6 +89,7 @@ def load_config(path: str | Path | None = None, env: dict[str, str] | None = Non
         langfuse_public_key=source.get("LANGFUSE_PUBLIC_KEY", values.get("langfuse_public_key")),
         langfuse_secret_key=source.get("LANGFUSE_SECRET_KEY", values.get("langfuse_secret_key")),
         sandbox_backend=source.get("MAST_SANDBOX_BACKEND", values.get("sandbox_backend", "local")),
+        sandbox_image=source.get("MAST_SANDBOX_IMAGE", values.get("sandbox_image", "python:3.12-slim")),
         tracing_backend=source.get("MAST_TRACING_BACKEND", values.get("tracing_backend", "jsonl")),
         models=ModelConfig(
             architect=source.get("MAST_ARCHITECT_MODEL", models.get("architect", "claude-opus")),

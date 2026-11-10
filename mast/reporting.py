@@ -4,7 +4,6 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-
 FAILURE_TYPES = {"plan_too_vague", "merge_conflict", "reviewer_false_approve", "tester_flake", "other"}
 
 
