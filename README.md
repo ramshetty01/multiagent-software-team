@@ -1,35 +1,35 @@
-# Multi-Agent Software Engineering Team
+# Multi-Agent Software Team
 
-Autonomous issue-to-PR orchestration for AI software engineering workflows.
+**Issue-to-PR orchestration with task dependencies, isolated worktrees and review/test gates.**
+
+Plan a task DAG, coordinate coding work, inspect staged changes and resume failed stages with explicit execution outcomes.
 
 [![CI](https://github.com/ramshetty01/multiagent-software-team/actions/workflows/ci.yml/badge.svg)](https://github.com/ramshetty01/multiagent-software-team/actions/workflows/ci.yml)
 
+**Stack:** Python · Git worktrees · Docker · JSONL task board · provider adapters.
+
+**Status:** Tested orchestration prototype. Live issue-solving performance and complete hostile-repository isolation remain unverified.
+
+[Project brief](docs/PROJECT_BRIEF.md) · [Technical portfolio](https://github.com/ramshetty01/ramshetty01/blob/main/PROJECT_PORTFOLIO.md) · [Issues](https://github.com/ramshetty01/multiagent-software-team/issues)
+
 ## Why This Exists
 
-Single-agent coding loops collapse when one context has to hold issue context,
-repo architecture, multiple implementation branches, review feedback, test logs,
-and cost accounting. This project splits the workflow into explicit roles:
+This project explores how explicit roles, dependency scheduling and verification
+gates can make issue-to-PR work easier to inspect:
 
 - architect: converts a GitHub issue into a subtask DAG
 - coders: claim subtasks and work in isolated worktrees/sandboxes
 - merge coordinator: stages branches and records conflicts
 - reviewer: reviews the merged diff only
-- tester: verifies in a clean environment and stores artifacts
+- tester: runs configured verification checks and stores artifacts
 - reporter: exports cost, trace, benchmark, and handoff-failure summaries
-
-## Current Status
-
-This repository is a tested orchestration prototype, not a production-certified service. It includes the core
-contracts, adapters, runners, CLI commands, tests, and deployment skeleton, but
-it is not yet a published benchmark result. Live autonomous runs require real
-provider credentials and a sandbox backend.
 
 ## Features
 
 - GitHub issue ingestion through `gh`
 - Append-only JSONL task board with worker leases
 - Config-driven provider factory for Anthropic, OpenAI, Gemini, and local fake providers
-- Local, Docker, and Daytona runner interfaces
+- Docker execution, trusted local test helpers and an experimental Daytona interface
 - Worktree lifecycle manager
 - Scope guard for coder patches
 - Staging merge coordinator and conflict resolver hook
