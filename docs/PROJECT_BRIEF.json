@@ -1,0 +1,60 @@
+{
+  "project": "multiagent-software-team",
+  "repository": "https://github.com/ramshetty01/multiagent-software-team",
+  "purpose": "Python issue-to-PR orchestration prototype with dependency-aware task DAGs, isolated Git worktrees, model review and final test gates.",
+  "current_status": "Locally verified prototype; maintenance PRs unmerged; no production certification or live issue-resolution benchmark.",
+  "stack": [
+    "Python 3.11+ (tested 3.12)",
+    "argparse/setuptools",
+    "dataclasses",
+    "JSONL and POSIX fcntl locks",
+    "ThreadPoolExecutor",
+    "Git worktrees",
+    "Docker command runner",
+    "HTTP model adapters for Anthropic/OpenAI/Google",
+    "pytest/Ruff/mypy/GitHub Actions/CodeQL"
+  ],
+  "workflow": [
+    "GitHub issue intake",
+    "validated architect DAG",
+    "dependency-aware task claims",
+    "coder patches in worktrees",
+    "staging merge",
+    "review of staged diff",
+    "final configured test",
+    "PR-ready artifact or explicit PR creation"
+  ],
+  "verification": {
+    "tests_passed": 118,
+    "live_provider_tests_skipped": 4,
+    "lint": "pass",
+    "mypy": "pass",
+    "integration": "Fake models with real temporary Git worktrees and dependency edits; no paid provider calls",
+    "host_git": "Harmless hook/external-diff/fsmonitor/textconv marker regressions"
+  },
+  "issues": [
+    143,
+    144,
+    145,
+    147,
+    148
+  ],
+  "pull_requests": [
+    146,
+    149
+  ],
+  "blockers": [
+    "independent live issue evaluation",
+    "enforced spend/token budgets",
+    "transactional state and crash recovery",
+    "complete hostile-repository isolation including filters/merge drivers",
+    "reproducible dependency lock and real Docker integration",
+    "deployment/load evidence",
+    "Daytona workspace synchronization"
+  ],
+  "resume_bullets": [
+    "Built a Python multi-agent orchestration prototype with dependency-aware claims, Git worktrees and resumable review/test gates.",
+    "Added failure-state and helper-execution regressions using fake providers and temporary Git repositories.",
+    "Restored package installation and CI checks while separating demo outcomes from verified execution."
+  ]
+}

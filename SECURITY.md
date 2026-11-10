@@ -27,3 +27,16 @@ literals with boundaries and minimum lengths. It reports only file/line location
 never matched values. This heuristic is not exhaustive: it does not inspect Git
 history, binaries, split/encoded secrets or arbitrary provider credentials. Use a
 provider-aware secret scanner and secret rotation procedures for release operations.
+
+## Host Git operations
+
+Automated Git worktree/commit/status operations disable hooks, filesystem-monitor
+helpers and commit signing. Review diffs disable external diff and text-conversion
+helpers. Child Git processes strip credential-shaped environment variable names and
+Git environment overrides, disable interactive authentication and have a 120-second
+per-command timeout. This protects specific helper execution paths, not a complete
+hostile-repository sandbox. Custom clean/smudge filters, merge drivers, local Git
+configuration, symlinks and filesystem access still require a trusted checkout or a
+stronger disposable isolated Git execution design. A partial/timeout Git operation
+may need operator recovery before retrying. Do not run arbitrary hostile repositories
+on a credential-bearing host based solely on these checks.

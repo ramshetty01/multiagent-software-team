@@ -1,11 +1,36 @@
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
 
+def _git_command(args: tuple[str, ...]) -> list[str]:
+    options = [
+        "git", "--no-pager", "-c", f"core.hooksPath={os.devnull}",
+        "-c", "core.fsmonitor=false", "-c", "commit.gpgsign=false",
+    ]
+    if args and args[0] in {"diff", "show", "log"}:
+        return [*options, args[0], "--no-ext-diff", "--no-textconv", *args[1:]]
+    return [*options, *args]
+
+
+def _git_environment() -> dict[str, str]:
+    # Git helper processes must not inherit provider credentials or redirect the target repo.
+    env = {
+        name: value for name, value in os.environ.items()
+        if not name.upper().startswith("GIT_")
+        and not any(marker in name.upper() for marker in ("API_KEY", "TOKEN", "SECRET", "PASSWORD"))
+    }
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    return env
+
+
 def git(repo: str | Path, *args: str) -> str:
-    result = subprocess.run(["git", *args], cwd=repo, text=True, capture_output=True, check=True)
+    result = subprocess.run(
+        _git_command(args), cwd=repo, text=True, capture_output=True,
+        check=True, env=_git_environment(), timeout=120,
+    )
     return result.stdout.strip()
 
 
@@ -47,7 +72,7 @@ def commit_all(repo: str | Path, message: str) -> str | None:
 
 
 def apply_patch(repo: str | Path, patch: str) -> None:
-    process = subprocess.run(["git", "apply", "-"], cwd=repo, input=patch, text=True, capture_output=True, check=False)
+    process = subprocess.run(_git_command(("apply", "-")), cwd=repo, input=patch, text=True, capture_output=True, check=False, env=_git_environment(), timeout=120)
     if process.returncode != 0:
         raise RuntimeError(process.stderr.strip() or "git apply failed")
 
