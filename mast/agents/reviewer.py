@@ -41,7 +41,7 @@ class Reviewer:
             )
             try:
                 parsed = parse_review_json(response.text)
-            except ValueError as exc:
+            except (ValueError, TypeError) as exc:
                 return Message(
                     type="rejected",
                     run_id=run_id,

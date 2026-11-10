@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from collections import Counter
 from pathlib import Path
 
@@ -33,11 +34,12 @@ class MergeCoordinator:
 
     def merge_branches(self, run_id: str, repo: str | Path, base_ref: str, branches: list[str]) -> Message:
         staging = f"staging/{run_id}"
+        base_commit = git(repo, "rev-parse", base_ref)
         try:
             git(repo, "switch", "-C", staging, base_ref)
             for branch in sorted(branches):
                 git(repo, "merge", "--no-edit", branch)
-        except Exception as exc:
+        except (OSError, subprocess.SubprocessError) as exc:
             conflicts = _conflicted_files(repo)
             return Message(
                 type="rejected",
@@ -51,13 +53,13 @@ class MergeCoordinator:
             run_id=run_id,
             role="merge",
             tags=["reviewer"],
-            payload={"staging_branch": staging, "staging_commit": git(repo, "rev-parse", "HEAD"), "branches": sorted(branches), "conflicts": []},
+            payload={"staging_branch": staging, "staging_commit": git(repo, "rev-parse", "HEAD"), "base_commit": base_commit, "branches": sorted(branches), "conflicts": []},
         )
 
 
 def _conflicted_files(repo: str | Path) -> list[str]:
     try:
         output = git(repo, "diff", "--name-only", "--diff-filter=U")
-    except Exception:
+    except (OSError, subprocess.SubprocessError):
         return []
     return [line for line in output.splitlines() if line]

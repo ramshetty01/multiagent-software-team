@@ -1,3 +1,3 @@
 from __future__ import annotations
 
-from .agents.tester import *  # noqa: F403
+from .agents.tester import *

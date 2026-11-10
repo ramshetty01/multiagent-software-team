@@ -4,7 +4,6 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-
 DEFAULT_PRICES_PER_MILLION = {
     "claude-opus": (15.0, 75.0),
     "claude-sonnet": (3.0, 15.0),
@@ -19,7 +18,7 @@ def call_cost(model: str, input_tokens: int, output_tokens: int, prices=DEFAULT_
 
 
 def cost_report(trace_path: str | Path, prices=DEFAULT_PRICES_PER_MILLION) -> dict:
-    totals = defaultdict(lambda: {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0})
+    totals: dict[str, dict[str, float]] = defaultdict(lambda: {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0})
     if not Path(trace_path).exists():
         return {}
     for line in Path(trace_path).read_text().splitlines():

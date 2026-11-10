@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 
 from ..artifacts import ArtifactStore
@@ -7,7 +8,7 @@ from ..failures import classify_retries, likely_owner
 from ..messages import Message
 from ..models import ModelProvider, ModelRequest, complete_with_retry
 from ..prompts import parse_test_failure_json, tester_prompt
-from ..runner import LocalRunner
+from ..runner import LocalRunner, Runner
 
 
 def resolve_test_command(repo: str | Path, configured: list[str] | None = None, production: bool = False) -> list[str]:
@@ -26,7 +27,9 @@ def resolve_test_command(repo: str | Path, configured: list[str] | None = None, 
 
 
 class Tester:
-    def __init__(self, runner: LocalRunner | None = None, provider: ModelProvider | None = None, model: str = "gemini-pro"):
+    __test__ = False  # Runtime role, not a pytest test class.
+
+    def __init__(self, runner: Runner | None = None, provider: ModelProvider | None = None, model: str = "gemini-pro"):
         self.runner = runner or LocalRunner()
         self.provider = provider
         self.model = model
@@ -73,7 +76,7 @@ class Tester:
         )
         owner_guess, confidence = likely_owner(result.stderr, ownership or {})
         if owner_guess and not message.subtask_id:
-            message.subtask_id = owner_guess
+            message = replace(message, subtask_id=owner_guess)
         message.payload["owner_confidence"] = confidence
         if artifact_store:
             message.payload["artifacts"] = {
@@ -92,6 +95,6 @@ class Tester:
             )
             try:
                 message.payload["classification"] = parse_test_failure_json(response.text)
-            except ValueError as exc:
+            except (ValueError, TypeError) as exc:
                 message.payload["classification"] = {"classification": "unknown", "evidence": str(exc)}
         return message

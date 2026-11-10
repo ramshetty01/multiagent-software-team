@@ -52,7 +52,7 @@ def parse_issue_ref(value: str) -> IssueRef:
 
 class GhIssueClient:
     def _json(self, args: list[str]) -> dict[str, Any]:
-        result = subprocess.run(["gh", *args], text=True, capture_output=True)
+        result = subprocess.run(["gh", *args], text=True, capture_output=True, check=False)
         if result.returncode != 0:
             stderr = result.stderr.strip() or result.stdout.strip() or "GitHub CLI command failed"
             code = "github_auth_or_access_error"

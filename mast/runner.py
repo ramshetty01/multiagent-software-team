@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import os
+import shlex
 import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
+from uuid import uuid4
 
 from .security import validate_command
 
@@ -21,10 +23,13 @@ class CommandResult:
 
 
 class LocalRunner:
+    def __init__(self, timeout_seconds: int = 900):
+        self.timeout_seconds = timeout_seconds
+
     def run(self, command: list[str], cwd: str | Path) -> CommandResult:
         validate_command(command)
         started = time.monotonic()
-        result = subprocess.run(command, cwd=cwd, text=True, capture_output=True, env=safe_command_env())
+        result = subprocess.run(command, cwd=cwd, text=True, capture_output=True, env=safe_command_env(), timeout=self.timeout_seconds, check=False)
         return CommandResult(
             command=command,
             cwd=str(cwd),
@@ -36,7 +41,7 @@ class LocalRunner:
 
 
 def safe_command_env(source: dict[str, str] | None = None) -> dict[str, str]:
-    env = dict(source or os.environ)
+    env = dict(os.environ if source is None else source)
     for name in list(env):
         upper = name.upper()
         if any(marker in upper for marker in ("API_KEY", "TOKEN", "SECRET", "PASSWORD")):
@@ -57,13 +62,14 @@ class DockerRunner:
         self.memory = memory
         self.cpus = cpus
 
-    def docker_command(self, command: list[str], cwd: str | Path) -> list[str]:
+    def docker_command(self, command: list[str], cwd: str | Path, name: str | None = None) -> list[str]:
         validate_command(command)
         mount_mode = "ro" if self.readonly else "rw"
         return [
             "docker",
             "run",
             "--rm",
+            *(["--name", name] if name else []),
             "--network",
             "none",
             "--memory",
@@ -79,22 +85,24 @@ class DockerRunner:
         ]
 
     def run(self, command: list[str], cwd: str | Path) -> CommandResult:
-        docker = self.docker_command(command, cwd)
+        name = f"mast-command-{uuid4().hex}"
+        docker = self.docker_command(command, cwd, name=name)
         started = time.monotonic()
         try:
-            result = subprocess.run(docker, text=True, capture_output=True, timeout=self.timeout_seconds)
+            result = subprocess.run(docker, text=True, capture_output=True, timeout=self.timeout_seconds, check=False)
             return CommandResult(docker, str(cwd), result.returncode, result.stdout, result.stderr, time.monotonic() - started)
         except subprocess.TimeoutExpired as exc:
-            return CommandResult(docker, str(cwd), 124, exc.stdout or "", exc.stderr or "command timed out", time.monotonic() - started)
+            subprocess.run(["docker", "rm", "-f", name], text=True, capture_output=True, timeout=30, check=False)
+            return CommandResult(docker, str(cwd), 124, _as_text(exc.stdout), _as_text(exc.stderr) or "command timed out", time.monotonic() - started)
 
 
-def runner_for_backend(backend: str, *, tester: bool = False) -> Runner:
+def runner_for_backend(backend: str, *, tester: bool = False, image: str = "python:3.12-slim", timeout_seconds: int = 900) -> Runner:
     if backend == "local":
-        return LocalRunner()
+        return LocalRunner(timeout_seconds=timeout_seconds)
     if backend == "docker":
-        return DockerRunner(readonly=tester)
+        return DockerRunner(readonly=tester, image=image, timeout_seconds=timeout_seconds)
     if backend == "daytona":
-        return DaytonaRunner()
+        return DaytonaRunner(timeout_seconds=timeout_seconds)
     raise ValueError(f"unsupported runner backend: {backend}")
 
 
@@ -129,10 +137,16 @@ class DaytonaRunner:
         sandbox = self.ensure_sandbox()
         sandbox_id = str(getattr(sandbox, "id", getattr(sandbox, "sandbox_id", "unknown")))
         started = time.monotonic()
-        response = sandbox.process.exec(" ".join(command), cwd=str(cwd), timeout=self.timeout_seconds)
+        response = sandbox.process.exec(shlex.join(command), cwd=str(cwd), timeout=self.timeout_seconds)
         exit_code = int(getattr(response, "exit_code", 0))
         stdout = str(getattr(response, "result", ""))
         artifacts = getattr(response, "artifacts", None)
         if artifacts and getattr(artifacts, "stdout", None):
             stdout = str(artifacts.stdout)
         return CommandResult(["daytona", sandbox_id, *command], str(cwd), exit_code, stdout, "", time.monotonic() - started)
+
+
+def _as_text(value: str | bytes | None) -> str:
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value or ""

@@ -13,7 +13,7 @@ def validate_subtask_payload(payload: dict[str, Any]) -> None:
     require_keys(payload, ["title", "contract"], "subtask")
     contract = payload["contract"]
     if not isinstance(contract, dict):
-        raise ValueError("subtask contract must be an object")
+        raise TypeError("subtask contract must be an object")
     require_keys(contract, ["files"], "subtask contract")
     if not isinstance(contract["files"], list) or not all(isinstance(item, str) for item in contract["files"]):
         raise ValueError("subtask contract files must be list[str]")
@@ -22,5 +22,5 @@ def validate_subtask_payload(payload: dict[str, Any]) -> None:
 def validate_review_feedback(payload: dict[str, Any]) -> None:
     require_keys(payload, ["requests"], "review_feedback")
     if not isinstance(payload["requests"], list):
-        raise ValueError("review_feedback requests must be a list")
+        raise TypeError("review_feedback requests must be a list")
 

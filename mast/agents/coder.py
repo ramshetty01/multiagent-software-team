@@ -1,21 +1,24 @@
 from __future__ import annotations
 
+import subprocess
+
 from ..board import JsonlTaskBoard
-from ..gitops import apply_patch, changed_files
+from ..gitops import apply_patch, changed_files, git
 from ..messages import Message
 from ..models import ModelProvider, ModelRequest, complete_with_retry
 from ..prompts import coder_prompt, read_declared_files
-from ..runner import LocalRunner
+from ..runner import LocalRunner, Runner
 from ..scope import out_of_scope
 from ..worktree import WorktreeManager
 
 
 class CoderWorker:
-    def __init__(self, board: JsonlTaskBoard, coder_id: str, provider: ModelProvider | None = None, model: str = "claude-sonnet"):
+    def __init__(self, board: JsonlTaskBoard, coder_id: str, provider: ModelProvider | None = None, model: str = "claude-sonnet", runner: Runner | None = None):
         self.board = board
         self.coder_id = coder_id
         self.provider = provider
         self.model = model
+        self.runner = runner or LocalRunner()
 
     def claim_next(self, run_id: str) -> Message | None:
         claim = self.board.claim_subtask(run_id, self.coder_id)
@@ -89,10 +92,13 @@ class CoderWorker:
         subtask: Message,
         test_command: list[str],
         max_attempts: int = 2,
+        dependency_branches: list[str] | None = None,
     ) -> Message:
         manager = WorktreeManager(repo, worktree_root)
         info = manager.prepare(run_id, subtask.subtask_id or "unknown")
-        runner = LocalRunner()
+        for branch in dependency_branches or []:
+            git(info.path, "merge", "--no-edit", branch)
+        runner = self.runner
         last_error = ""
         patch = ""
         tests = ""
@@ -115,7 +121,7 @@ class CoderWorker:
                     branch=committed.branch,
                     commit_sha=committed.commit_sha,
                 )
-            except Exception as exc:
+            except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as exc:
                 last_error = str(exc)
         message = Message(
             type="replan_needed",

@@ -6,7 +6,7 @@ from ..prompts import architect_prompt, parse_architect_json
 from ..schema import InterfaceContract, Subtask, validate_dag
 
 
-def plan_from_issue(run_id: str, title: str, body: str, provider: ModelProvider | None = None, model: str = "claude-opus") -> list[Message]:
+def plan_from_issue(run_id: str, title: str, body: str, provider: ModelProvider | None = None, model: str = "claude-opus", allow_fallback: bool = True) -> list[Message]:
     if not title.strip() or len(body.strip()) < 20:
         return [
             Message(
@@ -37,6 +37,9 @@ def plan_from_issue(run_id: str, title: str, body: str, provider: ModelProvider 
             subtasks = []
         if subtasks:
             return _messages_from_subtasks(run_id, title, body, subtasks, model_text)
+
+    if not allow_fallback:
+        return [Message(type="replan_needed", run_id=run_id, role="architect", tags=["architect"], payload={"reason": "Architect did not return a valid task DAG; execution withheld."})]
 
     subtasks = [
         Subtask("task-board", "Implement task board", InterfaceContract(["mast/board.py", "mast/messages.py"], ["JsonlTaskBoard"], ["tests/test_board.py"])),

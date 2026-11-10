@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -52,8 +53,8 @@ class LangfuseTraceLog(TraceLog):
         if self.client:
             try:
                 self.client.trace(id=span.trace_id, name=span.role, metadata=asdict(span))
-            except Exception:
-                pass
+            except Exception:  # noqa: BLE001 -- third-party telemetry must not interrupt saved local traces
+                logging.getLogger(__name__).warning("Remote trace delivery failed; local trace retained.")
         return span
 
 

@@ -38,6 +38,8 @@ def reviewer_prompt(diff: str, ownership: dict[str, str] | None = None) -> str:
 
 def parse_review_json(text: str) -> dict[str, Any]:
     data = json.loads(text)
+    if not isinstance(data, dict):
+        raise TypeError("Model response must be a JSON object")
     decision = data.get("decision")
     if decision not in {"approved", "request_changes"}:
         raise ValueError("review decision must be approved or request_changes")
@@ -58,6 +60,8 @@ def tester_prompt(stdout: str, stderr: str, diff: str, ownership: dict[str, str]
 
 def parse_test_failure_json(text: str) -> dict[str, Any]:
     data = json.loads(text)
+    if not isinstance(data, dict):
+        raise TypeError("Model response must be a JSON object")
     if data.get("classification") not in {"code_regression", "flaky_test", "environment_error", "unknown"}:
         raise ValueError("invalid test failure classification")
     return data
@@ -65,6 +69,8 @@ def parse_test_failure_json(text: str) -> dict[str, Any]:
 
 def parse_architect_json(text: str) -> list[Subtask]:
     data = json.loads(text)
+    if not isinstance(data, dict):
+        raise TypeError("Model response must be a JSON object")
     tasks = []
     for item in data.get("subtasks", []):
         contract = item["contract"]

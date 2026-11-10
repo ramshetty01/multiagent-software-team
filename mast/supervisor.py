@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from typing import Callable
 
 from .board import JsonlTaskBoard
 from .messages import Message
@@ -39,7 +39,7 @@ class WorkerSupervisor:
                 worker_id = futures[future]
                 try:
                     future.result()
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001 -- isolate arbitrary worker failures and record lifecycle
                     result.failed += 1
                     result.errors.append(f"{worker_id}: {exc}")
                     self._event(run_id, worker_id, "failed", {"error": str(exc)})

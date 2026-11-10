@@ -19,5 +19,5 @@ def test_demo_script_writes_board_and_status(tmp_path):
 
 
 def test_checked_in_demo_artifacts_exist():
-    assert "demo-api" in open("examples/demo-board.jsonl", encoding="utf-8").read()
-    assert "Role summary" in open("examples/demo-report.md", encoding="utf-8").read()
+    assert "demo-api" in __import__("pathlib").Path("examples/demo-board.jsonl").read_text()
+    assert "Role summary" in __import__("pathlib").Path("examples/demo-report.md").read_text()
